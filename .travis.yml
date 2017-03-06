@@ -1,0 +1,23 @@
+language: cpp
+dist: trusty
+sudo: required
+matrix:
+    include:
+        -   os: linux
+            env: COMPILER=g++-6 COMPILER_FLAGS="-Wall -Wpedantic -Wextra -Werror"
+            addons:
+                apt:
+                    sources:
+                        -   ubuntu-toolchain-r-test
+                    packages:
+                        -   libboost1.55-all-dev
+                        -   g++-6
+before_install:
+    -   export CXX=${COMPILER}
+    -   export CXXFLAGS=${COMPILER_FLAGS}
+script:
+    -   mkdir build
+    -   cd build
+    -   cmake .. -DCMAKE_BUILD_TYPE=Release -DBOOST_LIBRARYDIR=/usr/lib/x86_64-linux-gnu
+    -   cmake --build .
+    -   ctest -VV
