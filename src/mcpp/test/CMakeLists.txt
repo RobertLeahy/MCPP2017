@@ -1,5 +1,7 @@
 add_executable(tests
+	log.cpp
 	main.cpp
+	stream_log.cpp
 )
 target_link_libraries(tests mcpp ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 target_include_directories(tests PRIVATE ${CATCH_INCLUDE_DIR})
