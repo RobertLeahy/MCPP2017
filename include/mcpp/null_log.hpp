@@ -11,7 +11,7 @@
 namespace mcpp {
 
 /**
- *	Derived from \ref log and does nothing.
+ *	Derives from \ref log and does nothing.
  */
 class null_log : public log {
 protected:
