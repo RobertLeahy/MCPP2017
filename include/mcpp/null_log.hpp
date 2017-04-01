@@ -5,6 +5,7 @@
 #pragma once
 
 #include "log.hpp"
+#include "log_level.hpp"
 #include <string>
 
 namespace mcpp {
@@ -14,9 +15,9 @@ namespace mcpp {
  */
 class null_log : public log {
 protected:
-	virtual void write_impl (const std::string &, std::string, level) override;
+	virtual void write_impl (const std::string &, std::string, log_level) override;
 public:
-	virtual bool ignored (level) override;
+	virtual bool ignored (log_level) override;
 };
 
 }

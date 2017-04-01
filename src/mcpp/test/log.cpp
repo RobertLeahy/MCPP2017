@@ -1,4 +1,5 @@
 #include <mcpp/log.hpp>
+#include <mcpp/log_level.hpp>
 #include <mcpp/stream_log.hpp>
 #include <sstream>
 #include <catch.hpp>
@@ -26,7 +27,7 @@ SCENARIO("mcpp::log::write may be provided with a functor to lazily generate a l
 			}
 		}
 		WHEN("A certain log level is ignored") {
-			log.ignore(stream_log::level::info);
+			log.ignore(log_level::info);
 			AND_WHEN("A message is written to the log at that level by providing a functor which lazily generates a log message") {
 				log.write("test", f);
 				THEN("The functor is not invoked") {
@@ -37,7 +38,7 @@ SCENARIO("mcpp::log::write may be provided with a functor to lazily generate a l
 				}
 			}
 			AND_WHEN("A message is written to the log at a different level by providing a functor which lazily generates a log message") {
-				log.write("test", f, stream_log::level::debug);
+				log.write("test", f, log_level::debug);
 				THEN("The functor is invoked") {
 					CHECK(invoked);
 				}

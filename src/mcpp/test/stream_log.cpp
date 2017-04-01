@@ -1,3 +1,4 @@
+#include <mcpp/log_level.hpp>
 #include <mcpp/stream_log.hpp>
 #include <sstream>
 #include <catch.hpp>
@@ -11,7 +12,7 @@ SCENARIO("mcpp::stream_log writes messages which are not ignored to an underlyin
 		std::ostringstream ss;
 		stream_log log(ss);
 		WHEN("A certain log level is ignored") {
-			log.ignore(stream_log::level::info);
+			log.ignore(log_level::info);
 			AND_WHEN("A message of that level is logged") {
 				log.write("test", "foo");
 				THEN("Nothing is written to the underlying stream") {
@@ -19,7 +20,7 @@ SCENARIO("mcpp::stream_log writes messages which are not ignored to an underlyin
 				}
 			}
 			AND_WHEN("A message of another level is logged") {
-				log.write("baz", "corge", stream_log::level::debug);
+				log.write("baz", "corge", log_level::debug);
 				THEN("It is written to the underlying stream") {
 					CHECK(ss.str() == "[DEBUG] [baz] corge\n");
 				}
