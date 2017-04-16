@@ -1,5 +1,6 @@
 add_executable(mcpp_protocol_tests
 	../../tests/main.cpp
+	int.cpp
 	varint.cpp
 )
 target_link_libraries(mcpp_protocol_tests mcpp mcpp_protocol ${Boost_LIBRARIES})
