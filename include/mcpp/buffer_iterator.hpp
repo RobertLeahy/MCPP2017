@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "pointer_ops.hpp"
 #include <cstddef>
 
 namespace mcpp {
@@ -18,17 +19,6 @@ namespace mcpp {
  */
 template <typename T>
 using buffer_iterator = T *;
-
-namespace detail {
-
-inline const void * advance_void_pointer (const void * ptr, std::size_t n) noexcept {
-	return static_cast<const char *>(ptr) + n;
-}
-inline void * advance_void_pointer (void * ptr, std::size_t n) noexcept {
-	return static_cast<char *>(ptr) + n;
-}
-
-}
 
 /**
  *	Creates a \ref buffer_iterator which points
@@ -75,11 +65,11 @@ buffer_iterator<T> make_buffer_iterator (void * ptr) noexcept {
  */
 template <typename T = char>
 buffer_iterator<const T> make_buffer_iterator (const void * ptr, std::size_t len) noexcept {
-	return static_cast<buffer_iterator<const T>>(detail::advance_void_pointer(ptr, len));
+	return static_cast<buffer_iterator<const T>>(next(ptr, len));
 }
 template <typename T = char>
 buffer_iterator<T> make_buffer_iterator (void * ptr, std::size_t len) noexcept {
-	return static_cast<buffer_iterator<T>>(detail::advance_void_pointer(ptr, len));
+	return static_cast<buffer_iterator<T>>(next(ptr, len));
 }
 
 }
