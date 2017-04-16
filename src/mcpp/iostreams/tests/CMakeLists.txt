@@ -1,5 +1,6 @@
 add_executable(mcpp_iostreams_tests
 	../../tests/main.cpp
+	limiting_source.cpp
 	offset.cpp
 	traits.cpp
 )
