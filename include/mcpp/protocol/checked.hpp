@@ -16,8 +16,8 @@ namespace checked {
 
 /**
  *	Functions identically to \ref mcpp::checked::cast
- *	except that it returns a \ref error which wraps
- *	\ref error_code::overflow on failure.
+ *	except that it returns a `std::error_code which wraps
+ *	\ref error::overflow on failure.
  *
  *	\tparam To
  *		The integer type to convert to.
@@ -26,14 +26,10 @@ namespace checked {
  *
  *	\param [in] val
  *		The value to convert.
- *	\param [in] offset
- *		The offset at which \em val was parsed to be
- *		used to construct an \ref error object in case
- *		of failure.
  *
  *	\return
  *		The integer if conversion succeeds. If conversion
- *		fails a \ref error object.
+ *		fails a `std::error_code`.
  */
 template <typename To, typename From>
 boost::expected<To, std::error_code> cast (const From & val) noexcept {
