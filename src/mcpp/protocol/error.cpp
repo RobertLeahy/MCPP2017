@@ -1,48 +1,60 @@
-#include <boost/variant.hpp>
 #include <mcpp/protocol/error.hpp>
-#include <mcpp/protocol/error_code.hpp>
+#include <stdexcept>
 #include <string>
-#include <utility>
+#include <system_error>
 
 namespace mcpp {
 namespace protocol {
 
-error::error (error_code c, std::size_t offset) : c_(c), msg_(to_string(c).c_str()), offset_(offset) {	}
+const std::string & to_string (error c) {
+	static const std::string eof("Unexpected EOF");
+	static const std::string unrep("Encoded value unrepresentable by destination type");
+	static const std::string overl("Encoded representation longer than necessary");
+	static const std::string overf("Integer overflow");
+	static const std::string unexpected("Unexpected value");
+	switch (c) {
+	case error::end_of_file:
+		return eof;
+	case error::unrepresentable:
+		return unrep;
+	case error::overlong:
+		return overl;
+	case error::overflow:
+		return overf;
+	case error::unexpected:
+		return unexpected;
+	default:
+		break;
+	}
+	throw std::logic_error("Unrecognized error code");
+}
 
-error::error (error_code c, const char * str, std::size_t offset) noexcept : c_(c), msg_(str), offset_(offset) {	}
-
-error::error (error_code c, std::string str, std::size_t offset) : c_(c), msg_(std::move(str)), offset_(offset) {	}
-
-const char * error::what () const noexcept {
-	class visitor {
+const std::error_category & error_category () {
+	static const class final : public std::error_category {
 	public:
-		//	Provided to support Boost 1.55
-		//
-		//	Builds without this on Boost 1.61 but
-		//	fails due to the fact visiting type
-		//	doesn't have result_type on Boost 1.55
-		using result_type = const char *;
-		result_type operator () (const char * str) noexcept {
-			return str;
+		virtual const char * name () const noexcept override {
+			return "Minecraft Protocol";
 		}
-		result_type operator () (const std::string & str) noexcept {
-			return str.c_str();
+		virtual std::string message (int condition) const override {
+			error e = static_cast<error>(condition);
+			return to_string(e);
 		}
-	};
-	visitor v;
-	return boost::apply_visitor(v, msg_);
+	} retr;
+	return retr;
 }
 
-error_code error::code () const noexcept {
-	return c_;
+std::error_code make_error_code (error e) noexcept {
+	return std::error_code(
+		static_cast<int>(e),
+		error_category()
+	);
 }
 
-std::size_t error::offset () const noexcept {
-	return offset_;
-}
-
-void error::offset (std::size_t offset) noexcept {
-	offset_ = offset;
+std::error_condition make_error_condition (error e) noexcept {
+	return std::error_condition(
+		static_cast<int>(e),
+		error_category()
+	);
 }
 
 }
