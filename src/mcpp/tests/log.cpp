@@ -5,7 +5,7 @@
 #include <catch.hpp>
 
 namespace mcpp {
-namespace test {
+namespace tests {
 namespace {
 
 SCENARIO("mcpp::log::write may be provided with a functor to lazily generate a log message","[mcpp][log]") {

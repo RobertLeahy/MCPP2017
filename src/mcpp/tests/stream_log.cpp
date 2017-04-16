@@ -4,7 +4,7 @@
 #include <catch.hpp>
 
 namespace mcpp {
-namespace test {
+namespace tests {
 namespace {
 
 SCENARIO("mcpp::stream_log writes messages which are not ignored to an underlying std::ostream","[mcpp][log][stream_log]") {
