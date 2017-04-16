@@ -4,107 +4,80 @@
 
 #pragma once
 
-#include "error_code.hpp"
-#include <boost/variant.hpp>
-#include <cstddef>
 #include <string>
+#include <system_error>
+#include <type_traits>
 
 namespace mcpp {
 namespace protocol {
 
 /**
- *	Indicates an error during protocol
- *	parsing.
+ *	An enumeration of parse-related error
+ *	codes.
  */
-class error {
-private:
-	error_code c_;
-	boost::variant<const char *, std::string> msg_;
-	std::size_t offset_;
-public:
-	error () = delete;
-	error (const error &) = default;
-	error (error &&) = default;
-	error & operator = (const error &) = default;
-	error & operator = (error &&) = default;
-	/**
-	 *	Creates a new error object with an error
-	 *	message chosen based on the provided
-	 *	\ref error_code.
-	 *
-	 *	\param [in] c
-	 *		The \ref error_code value.
-	 *	\param [in] offset
-	 *		The offset in bytes at which the error
-	 *		occurred.
-	 */
-	error (error_code c, std::size_t offset);
-	/**
-	 *	Creates a new error object with a custom
-	 *	error message.
-	 *
-	 *	The error message will not be copied and
-	 *	it is therefore assumed that the lifetime
-	 *	of the pointed to string shall be at least
-	 *	as long as that of the newly created object
-	 *	or any object created by copying or moving
-	 *	it. If this assumption does not hold the
-	 *	behavior in undefined.
-	 *
-	 *	\param [in] c
-	 *		The \ref error_code value.
-	 *	\param [in] str
-	 *		A pointer to a null terminated string.
-	 *	\param [in] offset
-	 *		The offset in bytes at which the error
-	 *		occurred.
-	 */
-	error (error_code c, const char * str, std::size_t offset) noexcept;
-	/**
-	 *	Creates a new error object with a custom
-	 *	error message.
-	 *
-	 *	\param [in] c
-	 *		The \ref error_code value.
-	 *	\param [in] str
-	 *		A string.
-	 *	\param [in] offset
-	 *		The offset in bytes at which the error
-	 *		occurred.
-	 */
-	error (error_code c, std::string str, std::size_t offset);
-	/**
-	 *	Retrieves the message associated with this
-	 *	error.
-	 *
-	 *	\return
-	 *		A pointer to a null terminated string.
-	 */
-	const char * what () const noexcept;
-	/**
-	 *	Retrieves the error code associated with this
-	 *	error.
-	 *
-	 *	\return
-	 *		A \ref error_code value.
-	 */
-	error_code code () const noexcept;
-	/**
-	 *	Retrieves the offset in bytes at which the
-	 *	error occurred.
-	 *
-	 *	\return
-	 *		The offset in bytes.
-	 */
-	std::size_t offset () const noexcept;
-	/**
-	 *	Updates the offset.
-	 *
-	 *	\param [in] offset
-	 *		The offset in bytes.
-	 */
-	void offset (std::size_t offset) noexcept;
+enum class error {
+	end_of_file,	/**<	EOF was encountered unexpectedly while parsing	*/
+	unrepresentable,	/**<	The encoded value does not fit into the type to be used to represent it	*/
+	overlong,	/**<	A variable width encoding was wider than it needed to be	*/
+	overflow,	/**<	An integer overflow occurred during parsing	*/
+	unexpected,	/**<	One of a set of values was expected but the given value was not among those	*/
+	inconsistent_length,	/**<	Length prefixed data was found to be shorter than the given length	*/
+	uncompressed,	/**<	Compressed data was expected but the input was uncompressed	*/
+	compressed	/**<	Uncompressed data was expected but the input was compressed	*/
 };
 
+/**
+ *	Obtains a human readable message for an
+ *	\ref error.
+ *
+ *	\param [in] c
+ *		The \ref error value.
+ *
+ *	\return
+ *		A string.
+ */
+const std::string & to_string (error c);
+
+/**
+ *	Returns a reference to a `std::error_category`
+ *	object which allows \ref error enumeration values
+ *	to serve in `std::error_code` and `std::error_condition`
+ *	objects.
+ */
+const std::error_category & error_category ();
+
+/**
+ *	Creates a `std::error_code` object from an \ref error
+ *	enumeration value.
+ *
+ *	\param [in] e
+ *		A \ref error enumeration value.
+ *
+ *	\return
+ *		A `std::error_code`.
+ */
+std::error_code make_error_code (error e) noexcept;
+
+/**
+ *	Creates a `std::error_condition` object from an
+ *	\ref error enumeration value.
+ *
+ *	\param [in] e
+ *		A \ref error enumeration value.
+ *
+ *	\return
+ *		A `std::error_condition`.
+ */
+std::error_condition make_error_condition (error e) noexcept;
+
 }
+}
+
+namespace std {
+
+template <>
+struct is_error_code_enum<mcpp::protocol::error> : public std::true_type {	};
+template <>
+struct is_error_condition_enum<mcpp::protocol::error> : public std::true_type {	};
+
 }
