@@ -1,6 +1,7 @@
 add_executable(mcpp_tests
 	log.cpp
 	main.cpp
+	optional.cpp
 	stream_log.cpp
 )
 target_link_libraries(mcpp_tests mcpp mcpp_test ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
