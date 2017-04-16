@@ -1,5 +1,6 @@
 add_executable(mcpp_protocol_tests
 	../../tests/main.cpp
+	handshaking.cpp
 	int.cpp
 	string.cpp
 	varint.cpp
