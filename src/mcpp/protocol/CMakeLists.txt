@@ -3,3 +3,4 @@ add_library(mcpp_protocol SHARED
 	exception.cpp
 )
 target_link_libraries(mcpp_protocol mcpp ${Boost_LIBRARIES})
+add_subdirectory(tests)
