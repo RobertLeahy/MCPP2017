@@ -9,8 +9,9 @@ matrix:
                 apt:
                     sources:
                         -   ubuntu-toolchain-r-test
+                        -   sourceline: 'ppa:kzemek/boost'
                     packages:
-                        -   libboost1.55-all-dev
+                        -   boost1.58
                         -   g++-6
 before_install:
     -   export CXX=${COMPILER}
