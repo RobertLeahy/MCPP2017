@@ -1,4 +1,5 @@
 add_executable(mcpp_tests
+	checked.cpp
 	log.cpp
 	main.cpp
 	optional.cpp
