@@ -6,7 +6,7 @@
 
 #include "direction.hpp"
 #include "packet_parameters.hpp"
-#include "serializer_base.hpp"
+#include "typed_packet_serializer.hpp"
 #include "state.hpp"
 #include <cstdint>
 
@@ -14,7 +14,7 @@ namespace mcpp {
 namespace protocol {
 
 /**
- *	Derives from \ref serializer_base. Rather than dealing
+ *	Derives from \ref typed_serializer. Rather than dealing
  *	in an absolute type which derives from \ref packet this
  *	class deals with a type templates on a parameter which
  *	models `PacketParameters`.
@@ -24,21 +24,21 @@ namespace protocol {
  *		with a model of `PacketParameters` creates a type which
  *		derives from \ref packet.
  *	\tparam Id
- *		See \ref serializer_base.
+ *		See \ref typed_serializer.
  *	\tparam Direction
- *		See \ref serializer_base.
+ *		See \ref typed_serializer.
  *	\tparam State
- *		See \ref serializer_base.
+ *		See \ref typed_serializer.
  *	\tparam Source
- *		See \ref serializer_base.
+ *		See \ref typed_serializer.
  *	\tparam Sink
- *		See \ref serializer_base.
+ *		See \ref typed_serializer.
  *	\tparam PacketParameters
  *		A type which models `PacketParameters` which shall be used
  *		to obtain a concrete type from \em ParameterizedPacket and
  *		from which a model of `Allocator` shall be extracted to
  *		pass through to the appropriate template parameter of
- *		\ref serializer_base. Defaults to \ref packet_parameters.
+ *		\ref typed_serializer. Defaults to \ref packet_parameters.
  */
 template <
 	template <typename> class ParameterizedPacket,
@@ -49,7 +49,7 @@ template <
 	typename Sink,
 	typename PacketParameters = packet_parameters
 >
-class parameterized_serializer_base : public serializer_base<
+class parameterized_packet_serializer : public typed_packet_serializer<
 	ParameterizedPacket<PacketParameters>,
 	Id,
 	Direction,
@@ -59,7 +59,7 @@ class parameterized_serializer_base : public serializer_base<
 	allocator_t<PacketParameters>
 > {
 private:
-	using base = serializer_base<
+	using base = typed_packet_serializer<
 		ParameterizedPacket<PacketParameters>,
 		Id,
 		Direction,
