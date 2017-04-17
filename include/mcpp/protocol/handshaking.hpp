@@ -10,7 +10,7 @@
 #include "int.hpp"
 #include "packet.hpp"
 #include "packet_parameters.hpp"
-#include "parameterized_serializer_base.hpp"
+#include "parameterized_packet_serializer.hpp"
 #include "state.hpp"
 #include "string.hpp"
 #include "varint.hpp"
@@ -67,7 +67,7 @@ public:
 using handshake = basic_handshake<packet_parameters>;
 
 template <typename Source, typename Sink, typename PacketParameters = packet_parameters>
-class handshake_serializer final : public parameterized_serializer_base<
+class handshake_serializer final : public parameterized_packet_serializer<
 	basic_handshake,
 	0,
 	direction::serverbound,
@@ -77,7 +77,7 @@ class handshake_serializer final : public parameterized_serializer_base<
 	PacketParameters
 > {
 private:
-	using base = parameterized_serializer_base<
+	using base = parameterized_packet_serializer<
 		basic_handshake,
 		0,
 		direction::serverbound,
