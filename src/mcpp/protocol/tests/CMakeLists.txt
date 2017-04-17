@@ -2,7 +2,7 @@ add_executable(mcpp_protocol_tests
 	../../tests/main.cpp
 	handshaking.cpp
 	int.cpp
-	serializer_map.cpp
+	packet_serializer_map.cpp
 	string.cpp
 	varint.cpp
 )
