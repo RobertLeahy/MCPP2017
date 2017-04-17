@@ -34,7 +34,7 @@ namespace protocol {
  *		`std::allocator<packet>`.
  */
 template <typename Source, typename Sink, typename Allocator = std::allocator<packet>>
-class serializer {
+class packet_serializer {
 public:
 	/**
 	 *	A \ref polymorphic_ptr which manages
@@ -65,26 +65,26 @@ public:
 	 */
 	using parse_result_type = boost::expected<void, std::error_code>;
 	/**
-	 *	Creates a serializer object which uses a certain
+	 *	Creates a packet_serializer object which uses a certain
 	 *	allocator.
 	 *
 	 *	\param [in] a
 	 *		The allocator to use. Defaults to a default
 	 *		constructed \em Allocator.
 	 */
-	explicit serializer (const Allocator & a = Allocator{}) noexcept(
+	explicit packet_serializer (const Allocator & a = Allocator{}) noexcept(
 		std::is_nothrow_copy_constructible<Allocator>::value
 	)	:	a_(a)
 	{	}
-	serializer (const serializer &) = delete;
-	serializer (serializer &&) = delete;
-	serializer & operator = (const serializer &) = delete;
-	serializer & operator = (serializer &&) = delete;
+	packet_serializer (const packet_serializer &) = delete;
+	packet_serializer (packet_serializer &&) = delete;
+	packet_serializer & operator = (const packet_serializer &) = delete;
+	packet_serializer & operator = (packet_serializer &&) = delete;
 	/**
 	 *	Allows derived classes to be cleaned up through
 	 *	pointer or reference to base.
 	 */
-	virtual ~serializer () noexcept {	}
+	virtual ~packet_serializer () noexcept {	}
 	/**
 	 *	Creates a \ref packet object by consuming characters
 	 *	from a `Source`.
@@ -149,10 +149,10 @@ private:
 /**
  *	Obtains an `Allocator` suitable for allocating
  *	objects of type \em T by possibly rebinding the
- *	`Allocator` managed by a \ref serializer.
+ *	`Allocator` managed by a \ref packet_serializer.
  *
  *	This is provided as a free function rather than
- *	as a method of \ref serializer to avoid the need
+ *	as a method of \ref packet_serializer to avoid the need
  *	to use the `template` keyword.
  *
  *	\tparam T
@@ -160,20 +160,20 @@ private:
  *		`Allocator` shall allocate.
  *	\tparam Source
  *		The \em Source template parameter of the
- *		\ref serializer which is passed as a parameter.
+ *		\ref packet_serializer which is passed as a parameter.
  *	\tparam Sink
  *		The \em Sink template parameter of the
- *		\ref serializer which is passed as a parameter.
+ *		\ref packet_serializer which is passed as a parameter.
  *	\typename Allocator
  *		The \em Allocator template parameter of the
- *		\ref serializer which is passed as a parameter.
+ *		\ref packet_serializer which is passed as a parameter.
  *		The `Allocator` which is returned by this
  *		function shall be a rebound version of this
  *		`Allocator` equivalent to
  *		`std::allocator_traits<Allocator>::rebind_alloc<T>`.
  *
  *	\param [in] ser
- *		The \ref serializer whose `Allocator` shall be
+ *		The \ref packet_serializer whose `Allocator` shall be
  *		possibly rebound.
  *
  *	\return
@@ -181,7 +181,7 @@ private:
  *		\em T.
  */
 template <typename T, typename Source, typename Sink, typename Allocator>
-typename std::allocator_traits<Allocator>::template rebind_alloc<T> get_allocator (const serializer<Source, Sink, Allocator> & ser) noexcept(
+typename std::allocator_traits<Allocator>::template rebind_alloc<T> get_allocator (const packet_serializer<Source, Sink, Allocator> & ser) noexcept(
 	std::is_nothrow_constructible<typename std::allocator_traits<Allocator>::template rebind_alloc<T>, const Allocator &>::value &&
 	std::is_nothrow_move_constructible<typename std::allocator_traits<Allocator>::template rebind_alloc<T>>::value
 ) {
