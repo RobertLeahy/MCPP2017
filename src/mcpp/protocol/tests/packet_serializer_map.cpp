@@ -1,3 +1,4 @@
+#include <mcpp/protocol/packet_serializer_map_t.hpp>
 #include <mcpp/protocol/packet_serializer_map.hpp>
 #include <mcpp/protocol/direction.hpp>
 #include <mcpp/protocol/handshaking.hpp>
