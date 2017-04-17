@@ -6,7 +6,7 @@
 
 #include "direction.hpp"
 #include "packet_id.hpp"
-#include "serializer.hpp"
+#include "packet_serializer.hpp"
 #include "state.hpp"
 #include <cassert>
 #include <cstdint>
@@ -18,15 +18,15 @@ namespace mcpp {
 namespace protocol {
 
 /**
- *	Derives from \ref serializer and provides
- *	implementations of \ref serializer::serialize,
- *	\ref serializer::type, and \ref serializer::id
+ *	Derives from \ref packet_serializer and provides
+ *	implementations of \ref packet_serializer::serialize,
+ *	\ref packet_serializer::type, and \ref packet_serializer::id
  *	as appropriate based on the template parameters.
  *
  *	\tparam Packet
  *		The type of \ref packet the derived type is
  *		responsible for serializing and parsing. The
- *		second parameter to \ref serializer::serialize
+ *		second parameter to \ref packet_serializer::serialize
  *		will be appropriately downcast before being
  *		passed through to a virtual method implemented
  *		by the derived class and introduced by this
@@ -42,13 +42,13 @@ namespace protocol {
  *		A \ref state value giving the state in which the
  *		appropriate \ref packet is sent and received.
  *	\tparam Source
- *		Passed through to \ref serializer.
+ *		Passed through to \ref packet_serializer.
  *	\tparam Sink
- *		Passed through to \ref serializer.
+ *		Passed through to \ref packet_serializer.
  *	\tparam Allocator
  *		A model of `Allocator` to pass through to
- *		\serializer. Defaults to `std::allocator<packet>`
- *		just as in the case of \ref serializer.
+ *		\ref packet_serializer. Defaults to `std::allocator<packet>`
+ *		just as in the case of \ref packet_serializer.
  */
 template <
 	typename Packet,
@@ -59,9 +59,9 @@ template <
 	typename Sink,
 	typename Allocator
 >
-class serializer_base : public serializer<Source, Sink, Allocator> {
+class typed_packet_serializer : public packet_serializer<Source, Sink, Allocator> {
 private:
-	using base = serializer<Source, Sink, Allocator>;
+	using base = packet_serializer<Source, Sink, Allocator>;
 public:
 	using base::base;
 	/**
@@ -74,7 +74,7 @@ public:
 		serialize(static_cast<const Packet &>(p), sink);
 	}
 	/**
-	 *	Performs the same task as \ref serializer::serialize
+	 *	Performs the same task as \ref packet_serializer::serialize
 	 *	except that the second parameter has type `const Packet &`
 	 *	rather than `const packet &` (i.e. this base class
 	 *	performs the appropriate down cast for you and invokes
