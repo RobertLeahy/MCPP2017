@@ -1,5 +1,6 @@
 add_executable(mcpp_iostreams_tests
 	../../tests/main.cpp
+	concatenating_source.cpp
 	limiting_source.cpp
 	offset.cpp
 	proxy_sink.cpp
