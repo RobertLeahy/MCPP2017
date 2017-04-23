@@ -6,7 +6,9 @@
 
 #include "buffer_iterator.hpp"
 #include "pointer_ops.hpp"
+#include <algorithm>
 #include <cstddef>
+#include <ios>
 #include <iterator>
 #include <streambuf>
 #include <string>
@@ -54,6 +56,45 @@ private:
 		auto e = to_pointer(end);
 		base::setg(b, b, e);
 		base::setp(nullptr, nullptr);
+	}
+protected:
+	virtual typename base::pos_type seekpos (typename base::pos_type pos, std::ios_base::openmode which) noexcept override {
+		typename base::off_type off(pos);
+		std::size_t i(off);
+		std::size_t size = std::distance(base::eback(), base::egptr());
+		std::size_t new_pos = std::min(i, size);
+		if (which & std::ios_base::in) {
+			base::setg(base::eback(), base::eback() + new_pos, base::egptr());
+		}
+		if (which & std::ios_base::out) {
+			std::size_t size = std::distance(base::pbase(), base::epptr());
+			std::size_t new_pos = std::min(i, size);
+			base::setp(base::pbase(), base::epptr());
+			base::gbump(int(new_pos));
+			return typename base::pos_type(typename base::off_type(written()));
+		}
+		return typename base::pos_type(typename base::off_type(read()));
+	}
+	virtual typename base::pos_type seekoff (typename base::off_type off, std::ios_base::seekdir dir, std::ios_base::openmode which) noexcept override {
+		CharT * ptr;
+		switch (dir) {
+		case std::ios_base::beg:
+			ptr = base::eback();
+			break;
+		case std::ios_base::end:
+			ptr = base::egptr();
+			break;
+		case std::ios_base::cur:
+			ptr = base::gptr();
+			break;
+		default:
+			return typename base::pos_type(typename base::off_type(-1));
+		}
+		std::size_t pos = std::distance(base::eback(), ptr + off);
+		return seekpos(
+			typename base::pos_type(typename base::off_type(pos)),
+			which
+		);
 	}
 public:
 	basic_buffer () = default;
