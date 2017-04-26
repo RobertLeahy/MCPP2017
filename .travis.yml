@@ -9,16 +9,16 @@ matrix:
                 apt:
                     sources:
                         -   ubuntu-toolchain-r-test
-                        -   sourceline: 'ppa:kzemek/boost'
                     packages:
-                        -   boost1.58
                         -   g++-6
+                        -   zlib1g-dev
 before_install:
-    -   export CXX=${COMPILER}
-    -   export CXXFLAGS=${COMPILER_FLAGS}
+    -   export CXX="${COMPILER}"
+    -   export CXXFLAGS="${COMPILER_FLAGS}"
 script:
     -   mkdir build
     -   cd build
-    -   cmake .. -DCMAKE_BUILD_TYPE=Release -DBOOST_LIBRARYDIR=/usr/lib/x86_64-linux-gnu
+    -   ../.travis/boost.sh
+    -   cmake .. -DCMAKE_BUILD_TYPE=Release -DBOOST_ROOT="$(pwd)/boost/boost_1_64_0" -DBOOST_INCLUDEDIR="$(pwd)/boost/boost_1_64_0" -DBOOST_LIBRARYDIR="$(pwd)/boost/boost_1_64_0/stage/lib"
     -   cmake --build .
     -   ctest -VV
