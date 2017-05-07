@@ -1,6 +1,7 @@
 add_executable(mcpp_protocol_tests
 	../../tests/main.cpp
 	handshaking.cpp
+	incremental_varint_parser.cpp
 	int.cpp
 	packet_serializer_map.cpp
 	string.cpp
