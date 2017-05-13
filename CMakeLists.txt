@@ -8,6 +8,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules")
 find_package(Boost 1.58.0 REQUIRED iostreams)
 find_package(Catch REQUIRED)
+find_package(Doxygen)
 find_package(Expected REQUIRED)
 find_package(Threads REQUIRED)
 find_package(ZLIB REQUIRED)
@@ -15,3 +16,17 @@ include_directories(include ${Boost_INCLUDE_DIRS} ${EXPECTED_INCLUDE_DIR} ${ZLIB
 link_directories(${Boost_LIBRARY_DIRS})
 enable_testing()
 add_subdirectory(src)
+if(DOXYGEN_FOUND)
+	if(DOXYGEN_DOT_FOUND)
+		set(DOXYGEN_CONFIGURE_HAVE_DOT "HAVE_DOT=YES")
+		get_filename_component(DOXYGEN_DOT_PATH "${DOXYGEN_DOT_EXECUTABLE}" DIRECTORY)
+		file(TO_NATIVE_PATH "${DOXYGEN_DOT_PATH}" DOXYGEN_DOT_PATH)
+		set(DOXYGEN_CONFIGURE_DOT_PATH "DOT_PATH=${DOXYGEN_DOT_PATH}")
+	endif()
+	configure_file(Doxyfile.in ${CMAKE_BINARY_DIR}/Doxyfile)
+	add_custom_target(doc
+		${DOXYGEN_EXECUTABLE}
+		WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+		COMMENT "Running Doxygen" VERBATIM
+	)
+endif()
