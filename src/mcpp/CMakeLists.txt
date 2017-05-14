@@ -9,6 +9,7 @@ target_include_directories(mcpp
 		${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 target_link_libraries(mcpp
+	MParkVariant
 	Threads::Threads
 )
 add_subdirectory(tests)
