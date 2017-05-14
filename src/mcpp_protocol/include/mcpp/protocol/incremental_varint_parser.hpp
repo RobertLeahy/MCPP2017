@@ -4,15 +4,15 @@
 
 #pragma once
 
-#include "../buffer.hpp"
-#include "../iostreams/concatenating_source.hpp"
-#include "../optional.hpp"
 #include "error.hpp"
 #include "varint.hpp"
 #include <boost/core/ref.hpp>
 #include <boost/expected/expected.hpp>
 #include <boost/iostreams/compose.hpp>
 #include <boost/iostreams/tee.hpp>
+#include <mcpp/buffer.hpp>
+#include <mcpp/iostreams/concatenating_source.hpp>
+#include <mcpp/optional.hpp>
 #include <cassert>
 #include <cstddef>
 #include <system_error>

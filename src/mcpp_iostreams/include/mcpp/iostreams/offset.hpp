@@ -4,10 +4,10 @@
 
 #pragma once
 
-#include "../optional.hpp"
 #include "traits.hpp"
 #include <boost/iostreams/categories.hpp>
 #include <boost/iostreams/seek.hpp>
+#include <mcpp/optional.hpp>
 #include <cstddef>
 #include <ios>
 #include <type_traits>

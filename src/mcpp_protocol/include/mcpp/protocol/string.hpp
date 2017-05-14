@@ -4,10 +4,6 @@
 
 #pragma once
 
-#include "../checked.hpp"
-#include "../iostreams/limiting_source.hpp"
-#include "../iostreams/proxy_sink.hpp"
-#include "../iostreams/traits.hpp"
 #include "checked.hpp"
 #include "error.hpp"
 #include "exception.hpp"
@@ -17,6 +13,10 @@
 #include <boost/iostreams/code_converter.hpp>
 #include <boost/iostreams/copy.hpp>
 #include <boost/iostreams/write.hpp>
+#include <mcpp/checked.hpp>
+#include <mcpp/iostreams/limiting_source.hpp>
+#include <mcpp/iostreams/proxy_sink.hpp>
+#include <mcpp/iostreams/traits.hpp>
 #include <codecvt>
 #include <cstddef>
 #include <cstdint>

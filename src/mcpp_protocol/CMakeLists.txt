@@ -1,0 +1,21 @@
+add_library(mcpp_protocol SHARED
+	direction.cpp
+	error.cpp
+	exception.cpp
+	packet.cpp
+	packet_id.cpp
+	state.cpp
+)
+target_include_directories(mcpp_protocol
+	PUBLIC
+		${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+target_link_libraries(mcpp_protocol
+	mcpp
+	mcpp_iostreams
+	Boost::boost
+	Boost::iostreams
+	Expected
+	ZLIB::ZLIB
+)
+add_subdirectory(tests)

@@ -4,13 +4,13 @@
 
 #pragma once
 
-#include "../allocate_unique.hpp"
 #include "packet.hpp"
 #include "packet_id.hpp"
 #include "packet_serializer.hpp"
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/hashed_index.hpp>
 #include <boost/multi_index/tag.hpp>
+#include <mcpp/allocate_unique.hpp>
 #include <functional>
 #include <memory>
 #include <string>

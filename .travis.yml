@@ -19,6 +19,7 @@ script:
     -   mkdir build
     -   cd build
     -   ../.travis/boost.sh
-    -   cmake .. -DCMAKE_BUILD_TYPE=Release -DBOOST_ROOT="$(pwd)/boost/boost_1_64_0" -DBOOST_INCLUDEDIR="$(pwd)/boost/boost_1_64_0" -DBOOST_LIBRARYDIR="$(pwd)/boost/boost_1_64_0/stage/lib"
-    -   cmake --build .
-    -   ctest -VV
+    -   ../.travis/cmake.sh
+    -   ./cmake/bin/cmake .. -DCMAKE_BUILD_TYPE=Release -DBOOST_ROOT="$(pwd)/boost/boost_1_64_0" -DBOOST_INCLUDEDIR="$(pwd)/boost/boost_1_64_0" -DBOOST_LIBRARYDIR="$(pwd)/boost/boost_1_64_0/stage/lib"
+    -   ./cmake/bin/cmake --build .
+    -   ./cmake/bin/ctest -VV

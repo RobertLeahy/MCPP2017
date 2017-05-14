@@ -4,8 +4,11 @@ add_library(mcpp SHARED
 	null_log.cpp
 	stream_log.cpp
 )
-target_link_libraries(mcpp ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
-add_subdirectory(iostreams)
-add_subdirectory(protocol)
-add_subdirectory(test)
+target_include_directories(mcpp
+	PUBLIC
+		${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+target_link_libraries(mcpp
+	Threads::Threads
+)
 add_subdirectory(tests)

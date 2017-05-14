@@ -1,11 +1,9 @@
-#	This file's contents are drawn from here:
+#	This file's contents are based on the one found here:
 #	https://github.com/philsquared/Catch/blob/master/docs/build-systems.md#cmake
-
-cmake_minimum_required(VERSION 2.8.8)
+cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
 project(catch_builder CXX)
 include(ExternalProject)
 find_package(Git REQUIRED)
-
 ExternalProject_Add(
 	catch
 	PREFIX ${CMAKE_BINARY_DIR}/catch
@@ -17,7 +15,6 @@ ExternalProject_Add(
 	INSTALL_COMMAND ""
 	LOG_DOWNLOAD ON
 )
-
-# Expose required variable (CATCH_INCLUDE_DIR) to parent scope
 ExternalProject_Get_Property(catch source_dir)
-set(CATCH_INCLUDE_DIR ${source_dir}/include CACHE INTERNAL "Path to include folder for Catch")
+add_library(Catch INTERFACE)
+target_include_directories(Catch INTERFACE ${source_dir}/include)

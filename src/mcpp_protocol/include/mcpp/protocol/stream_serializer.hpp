@@ -4,15 +4,6 @@
 
 #pragma once
 
-#include "../iostreams/concatenating_source.hpp"
-#include "../iostreams/limiting_source.hpp"
-#include "../iostreams/offset.hpp"
-#include "../iostreams/proxy_sink.hpp"
-#include "../iostreams/proxy_source.hpp"
-#include "../iostreams/traits.hpp"
-#include "../buffer.hpp"
-#include "../checked.hpp"
-#include "../optional.hpp"
 #include "direction.hpp"
 #include "error.hpp"
 #include "exception.hpp"
@@ -29,6 +20,15 @@
 #include <boost/iostreams/compose.hpp>
 #include <boost/iostreams/copy.hpp>
 #include <boost/iostreams/filter/zlib.hpp>
+#include <mcpp/buffer.hpp>
+#include <mcpp/checked.hpp>
+#include <mcpp/iostreams/concatenating_source.hpp>
+#include <mcpp/iostreams/limiting_source.hpp>
+#include <mcpp/iostreams/offset.hpp>
+#include <mcpp/iostreams/proxy_sink.hpp>
+#include <mcpp/iostreams/proxy_source.hpp>
+#include <mcpp/iostreams/traits.hpp>
+#include <mcpp/optional.hpp>
 #include <cassert>
 #include <cstddef>
 #include <cstdint>

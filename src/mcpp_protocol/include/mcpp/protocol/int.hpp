@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include "../iostreams/traits.hpp"
 #include "error.hpp"
 #include "exception.hpp"
 //	In Boost 1.61.0 including boost/endian/endian.hpp
@@ -18,6 +17,7 @@
 #include <boost/expected/expected.hpp>
 #include <boost/iostreams/read.hpp>
 #include <boost/iostreams/write.hpp>
+#include <mcpp/iostreams/traits.hpp>
 #include <cstddef>
 #include <cstring>
 #include <ios>

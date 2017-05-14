@@ -4,10 +4,10 @@
 
 #pragma once
 
-#include "../polymorphic_ptr.hpp"
 #include "packet.hpp"
 #include "packet_id.hpp"
 #include <boost/expected/expected.hpp>
+#include <mcpp/polymorphic_ptr.hpp>
 #include <memory>
 #include <type_traits>
 #include <typeinfo>

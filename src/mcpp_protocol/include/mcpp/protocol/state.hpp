@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "../enum_hash.hpp"
+#include <mcpp/enum_hash.hpp>
 #include <functional>
 #include <string>
 

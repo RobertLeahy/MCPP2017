@@ -4,10 +4,10 @@
 
 #pragma once
 
-#include "../allocate_unique.hpp"
 #include "handshaking.hpp"
 #include "packet_parameters.hpp"
 #include "packet_serializer_map_t.hpp"
+#include <mcpp/allocate_unique.hpp>
 #include <utility>
 
 namespace mcpp {

@@ -4,12 +4,12 @@
 
 #pragma once
 
-#include "../iostreams/traits.hpp"
 #include "error.hpp"
 #include "exception.hpp"
 #include <boost/expected/expected.hpp>
 #include <boost/iostreams/get.hpp>
 #include <boost/iostreams/write.hpp>
+#include <mcpp/iostreams/traits.hpp>
 #include <cstddef>
 #include <cstring>
 #include <ios>

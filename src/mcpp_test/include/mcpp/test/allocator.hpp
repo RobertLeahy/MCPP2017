@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "../checked.hpp"
+#include <mcpp/checked.hpp>
 #include <cstddef>
 #include <cstdlib>
 #include <exception>
