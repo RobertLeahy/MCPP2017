@@ -5,6 +5,7 @@ INPUT=${CMAKE_SOURCE_DIR}/src/mcpp/include
 INPUT+=${CMAKE_SOURCE_DIR}/src/mcpp_iostreams/include
 INPUT+=${CMAKE_SOURCE_DIR}/src/mcpp_protocol/include
 INPUT+=${CMAKE_SOURCE_DIR}/src/mcpp_test/include
+INPUT+=${CMAKE_SOURCE_DIR}/src/mcpp_yggdrasil/include
 EXCLUDE_PATTERNS=
 FILE_PATTERNS=*.hpp
 RECURSIVE=YES
@@ -14,6 +15,7 @@ STRIP_FROM_INC_PATH=${CMAKE_SOURCE_DIR}/src/mcpp/include
 STRIP_FROM_INC_PATH+=${CMAKE_SOURCE_DIR}/src/mcpp_iostreams/include
 STRIP_FROM_INC_PATH+=${CMAKE_SOURCE_DIR}/src/mcpp_protocol/include
 STRIP_FROM_INC_PATH+=${CMAKE_SOURCE_DIR}/src/mcpp_test/include
+STRIP_FROM_INC_PATH+=${CMAKE_SOURCE_DIR}/src/mcpp_yggdrasil/include
 PREDEFINED=MCPP_DOXYGEN_RUNNING
 EXCLUDE_SYMBOLS=detail
 ${DOXYGEN_CONFIGURE_HAVE_DOT}
