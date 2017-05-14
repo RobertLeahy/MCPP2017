@@ -43,6 +43,10 @@ const std::string & to_string (error c);
  *	object which allows \ref error enumeration values
  *	to serve in `std::error_code` and `std::error_condition`
  *	objects.
+ *
+ *	\return
+ *		A reference to an object which derives from
+ *		`std::error_category`.
  */
 const std::error_category & error_category ();
 
