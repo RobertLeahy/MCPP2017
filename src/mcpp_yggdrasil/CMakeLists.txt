@@ -1,6 +1,7 @@
 add_library(mcpp_yggdrasil SHARED
 	agent.cpp
 	authenticate.cpp
+	json.cpp
 	profile.cpp
 	user.cpp
 )
@@ -9,6 +10,10 @@ target_include_directories(mcpp_yggdrasil
 		${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 target_link_libraries(mcpp_yggdrasil
-	mcpp
+	PUBLIC
+		mcpp
+		Expected
+	PRIVATE
+		RapidJSON
 )
 add_subdirectory(tests)
