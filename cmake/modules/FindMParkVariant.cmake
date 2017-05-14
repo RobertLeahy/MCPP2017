@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
-project(mpark_variant CXX)
+project(mpark_variant_builder CXX)
 include(ExternalProject)
 find_package(Git REQUIRED)
 ExternalProject_Add(
