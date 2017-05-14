@@ -16,3 +16,4 @@ ExternalProject_Add(
 ExternalProject_Get_Property(expected source_dir)
 add_library(Expected INTERFACE)
 target_include_directories(Expected INTERFACE ${source_dir}/include)
+target_link_libraries(Expected INTERFACE Boost::boost)
