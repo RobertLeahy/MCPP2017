@@ -17,4 +17,5 @@ ExternalProject_Add(
 )
 ExternalProject_Get_Property(catch source_dir)
 add_library(Catch INTERFACE)
+add_dependencies(Catch catch)
 target_include_directories(Catch INTERFACE ${source_dir}/include)
