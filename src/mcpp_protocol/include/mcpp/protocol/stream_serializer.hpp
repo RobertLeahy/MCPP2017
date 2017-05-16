@@ -33,6 +33,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <ios>
+#include <memory>
 #include <sstream>
 #include <system_error>
 #include <utility>
@@ -69,8 +70,14 @@ public:
 	using inner_allocator_type = Allocator;
 private:
 	template <typename Device>
+	using vectorbuf_allocator_t = typename std::allocator_traits<
+		inner_allocator_type
+	>::template rebind_alloc<
+		iostreams::char_type_of_t<Device>
+	>;
+	template <typename Device>
 	using vectorbuf_t = boost::interprocess::basic_vectorbuf<
-		std::vector<iostreams::char_type_of_t<Device>, inner_allocator_type>,
+		std::vector<iostreams::char_type_of_t<Device>, vectorbuf_allocator_t<Device>>,
 		iostreams::traits_of_t<Device>
 	>;
 	using size_type = std::uint32_t;
@@ -96,6 +103,10 @@ public:
 		inner_allocator_type
 	>;
 private:
+	using inner_source_vector_type = typename inner_source_type::vector_type;
+	using inner_source_allocator_type = vectorbuf_allocator_t<Source>;
+	using inner_sink_vector_type = typename inner_sink_type::vector_type;
+	using inner_sink_allocator_type = vectorbuf_allocator_t<Sink>;
 	packet_serializer_map_type map_;
 	protocol::direction direction_;
 	protocol::state state_;
@@ -721,12 +732,12 @@ public:
 	)	:	map_(std::move(map)),
 			direction_(d),
 			state_(s),
-			parse_body_(typename inner_source_type::vector_type(map_.get_allocator())),
+			parse_body_(inner_source_vector_type(inner_source_allocator_type(map_.get_allocator()))),
 			parse_decompressor_(zlib),
 			parse_body_consumed_(0),
 			parse_body_compressed_size_(0),
-			serialize_body_(typename inner_sink_type::vector_type(map_.get_allocator())),
-			serialize_compressed_(typename inner_sink_type::vector_type(map_.get_allocator())),
+			serialize_body_(inner_sink_vector_type(inner_sink_allocator_type(map_.get_allocator()))),
+			serialize_compressed_(inner_sink_vector_type(inner_sink_allocator_type(map_.get_allocator()))),
 			serialize_compressor_(zlib),
 			serialize_is_compressed_(false)
 	{	}
