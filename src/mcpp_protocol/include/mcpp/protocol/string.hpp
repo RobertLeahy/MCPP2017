@@ -248,9 +248,10 @@ template <typename Codecvt, typename CharT, typename Traits, typename Allocator,
 void serialize_string (const std::basic_string<CharT, Traits, Allocator> & val, Sink & sink, const std::false_type &) {
 	using char_type = iostreams::char_type_of_t<Sink>;
 	using traits = std::char_traits<char_type>;
-	using string = std::basic_string<char_type, traits, Allocator>;
-	using stringbuf = std::basic_stringbuf<char_type, traits, Allocator>;
-	string str(val.get_allocator());
+	using allocator = typename std::allocator_traits<Allocator>::template rebind_alloc<char_type>;
+	using string = std::basic_string<char_type, traits, allocator>;
+	using stringbuf = std::basic_stringbuf<char_type, traits, allocator>;
+	string str(allocator(val.get_allocator()));
 	stringbuf buf(str, std::ios_base::out);
 	//	Not sure why this proxy is necessary, if I don't
 	//	use it I get a bunch of compile time errors I suspect
