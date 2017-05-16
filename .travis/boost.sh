@@ -10,6 +10,6 @@ tar -zxf "boost_1_${2}_0.tar.gz"
 pushd "boost_1_${2}_0"
 ./bootstrap.sh
 if [ ${1} = "clang" ]; then PROPERTIES="cxxflags=-stdlib=libc++ linkflags=-stdlib=libc++"; fi
-./b2 "--toolset=${1}" ${PROPERTIES} --with-iostreams --with-regex -s NO_BZIP2=1
+./b2 "--toolset=${1}" ${PROPERTIES} --with-iostreams --with-regex --with-system -s NO_BZIP2=1
 popd
 popd

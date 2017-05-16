@@ -4,6 +4,7 @@
 
 #include "authenticate.hpp"
 #include <boost/expected/expected.hpp>
+#include <boost/system/error_code.hpp>
 #include <mcpp/buffer.hpp>
 #include <cstring>
 #include <istream>
@@ -49,6 +50,12 @@ const std::string & to_string (from_json_error c);
  *		An object which derives from `std::error_category`.
  */
 const std::error_category & from_json_error_category ();
+
+namespace detail {
+
+const boost::system::error_category & from_json_boost_error_category ();
+
+}
 
 /**
  *	Creates a `std::error_code` from a \ref from_json_error

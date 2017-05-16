@@ -1,6 +1,7 @@
 add_library(mcpp_yggdrasil SHARED
 	agent.cpp
 	authenticate.cpp
+	http.cpp
 	json.cpp
 	profile.cpp
 	user.cpp
@@ -12,6 +13,10 @@ target_include_directories(mcpp_yggdrasil
 target_link_libraries(mcpp_yggdrasil
 	PUBLIC
 		mcpp
+		Asio
+		Beast
+		Boost::boost
+		Boost::system
 		Expected
 	PRIVATE
 		RapidJSON
