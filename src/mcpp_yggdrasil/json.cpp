@@ -1,4 +1,5 @@
 #include <boost/expected/expected.hpp>
+#include <boost/system/error_code.hpp>
 #include <mcpp/checked.hpp>
 #include <mcpp/optional.hpp>
 #include <mcpp/variant.hpp>
@@ -53,18 +54,36 @@ const std::string & to_string (from_json_error c) {
 	throw std::logic_error("Unrecognized error code");
 }
 
-const std::error_category & from_json_error_category () {
-	static const class final : public std::error_category {
-	public:
-		virtual const char * name () const noexcept override {
-			return "Yggdrasil JSON Parse";
-		}
-		virtual std::string message (int condition) const override {
-			from_json_error e = static_cast<from_json_error>(condition);
-			return to_string(e);
-		}
-	} retr;
+namespace {
+
+class from_json_error_category_impl final : public std::error_category, public boost::system::error_category {
+public:
+	virtual const char * name () const noexcept override {
+		return "Yggdrasil JSON Parse";
+	}
+	virtual std::string message (int condition) const override {
+		from_json_error e = static_cast<from_json_error>(condition);
+		return to_string(e);
+	}
+};
+
+}
+
+static const from_json_error_category_impl & get_from_json_error_category () {
+	static const from_json_error_category_impl retr;
 	return retr;
+}
+
+const std::error_category & from_json_error_category () {
+	return get_from_json_error_category();
+}
+
+namespace detail {
+
+const boost::system::error_category & from_json_boost_error_category () {
+	return get_from_json_error_category();
+}
+
 }
 
 std::error_code make_error_code (from_json_error e) noexcept {
