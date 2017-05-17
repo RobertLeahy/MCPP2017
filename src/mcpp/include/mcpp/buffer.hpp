@@ -121,13 +121,12 @@ public:
 	 *	Replaces the underlying buffer with an array.
 	 *
 	 *	\tparam T
-	 *		The type pointed to by \em ptr.
+	 *		The type of the array.
+	 *	\tparam N
+	 *		The number of elements in the array.
 	 *
-	 *	\param [in] ptr
-	 *		A pointer to the first byte in the buffer.
-	 *	\param [in] len
-	 *		The number of bytes in the buffer pointed to
-	 *		by \em ptr.
+	 *	\param [in] arr
+	 *		A reference to the array.
 	 */
 	template <typename T, std::size_t N>
 	void assign (T (& arr) [N]) noexcept {
@@ -140,12 +139,13 @@ public:
 	 *	memory.
 	 *
 	 *	\tparam T
-	 *		The type of the array.
-	 *	\tparam N
-	 *		The number of elements in the array.
+	 *		The type pointed to by \em ptr.
 	 *
-	 *	\param [in] arr
-	 *		A reference to the array.
+	 *	\param [in] ptr
+	 *		A pointer to the first byte in the buffer.
+	 *	\param [in] len
+	 *		The number of bytes in the buffer pointed to
+	 *		by \em ptr.
 	 */
 	template <typename T>
 	void assign (T * ptr, std::size_t len) noexcept {
