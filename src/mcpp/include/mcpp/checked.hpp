@@ -86,7 +86,7 @@ constexpr bool cast_check_min (const From &, const std::true_type &) noexcept {
  *		convenience may also be an optional
  *		integer.
  *
- *	\tparam [in] val
+ *	\param [in] val
  *		The value to attempt to convert. If this
  *		is an optional integer (or an arbitrary
  *		nesting of optionals with an integer as
