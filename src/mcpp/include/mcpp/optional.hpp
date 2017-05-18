@@ -4,7 +4,7 @@
 
 #pragma once
 
-#if __has_include(<optional>)
+#ifdef MCPP_HAS_OPTIONAL
 #include <optional>
 namespace mcpp {
 using std::bad_optional_access;
@@ -16,8 +16,11 @@ using std::nullopt_t;
 using std::optional;
 }
 #else
-#if __has_include(<experimental/optional>)
+#ifdef MCPP_HAS_EXPERIMENTAL_OPTIONAL
 #include <experimental/optional>
+#else
+#include <optional.hpp>
+#endif
 namespace mcpp {
 using std::experimental::bad_optional_access;
 using std::experimental::make_optional;
@@ -27,9 +30,6 @@ using std::experimental::nullopt;
 using std::experimental::nullopt_t;
 using std::experimental::optional;
 }
-#else
-#error No optional support
-#endif
 #endif
 
 #include <algorithm>

@@ -10,6 +10,7 @@ target_include_directories(mcpp
 )
 target_link_libraries(mcpp
 	MParkVariant
+	Optional
 	Threads::Threads
 )
 add_subdirectory(tests)
