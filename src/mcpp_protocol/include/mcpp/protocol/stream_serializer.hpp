@@ -517,7 +517,7 @@ private:
 		size_buffer_type size_buffer;
 		buffer out(size_buffer);
 		auto size = serialize_body_.vector().size();
-		auto size_32 = checked::cast<size_type>(size);
+		auto size_32 = mcpp::checked::cast<size_type>(size);
 		if (!size_32) {
 			std::ostringstream ss;
 			ss << "Packet length " << size << " unrepresentable";
@@ -549,7 +549,7 @@ private:
 		optional<size_type> uncompressed_size_32(0);
 		if (serialize_is_compressed_) {
 			auto uncompressed_size = serialize_body_.vector().size();
-			uncompressed_size_32 = checked::cast<size_type>(uncompressed_size);
+			uncompressed_size_32 = mcpp::checked::cast<size_type>(uncompressed_size);
 			if (!uncompressed_size_32) {
 				std::ostringstream ss;
 				ss << "Compressed data length " << uncompressed_size << " unrepresentable";
@@ -562,7 +562,7 @@ private:
 		std::size_t compressed_size = (
 			serialize_is_compressed_ ? serialize_compressed_ : serialize_body_
 		).vector().size() + uncompressed_size_out.written();
-		auto compressed_size_32 = checked::cast<size_type>(compressed_size);
+		auto compressed_size_32 = mcpp::checked::cast<size_type>(compressed_size);
 		if (!compressed_size_32) {
 			std::ostringstream ss;
 			ss << "Packet length " << compressed_size << " unrepresentable";

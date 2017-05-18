@@ -20,7 +20,7 @@ namespace detail {
 template <typename Device>
 optional<std::size_t> offset (Device & device, std::ios_base::openmode which, const std::true_type &) {
 	auto pos = boost::iostreams::seek(device, 0, std::ios_base::cur, which);
-	if (pos == -1) return nullopt;
+	if (pos == decltype(pos)(-1)) return nullopt;
 	return std::size_t(pos);
 }
 template <typename Device>

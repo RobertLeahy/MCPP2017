@@ -111,7 +111,9 @@ private:
 	public:
 		AsyncStream & stream;
 		DynamicBuffer & buffer;
-		http_request_op::stage stage;
+		//	The "typename" here is required by MSVC++ 2017
+		//	but not by GCC 6.3.0 or Clang 4
+		typename http_request_op::stage stage;
 		http_request_type request;
 		optional<http_response_parser_type> parser;
 		state (

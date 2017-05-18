@@ -9,7 +9,7 @@
 //	In Boost 1.61.0 including boost/endian/endian.hpp
 //	is an error whereas in Boost 1.55.0 boost/endian/conversion.hpp
 //	doesn't exist apparently
-#if __has_include(<boost/endian/conversion.hpp>)
+#ifdef MCPP_HAS_BOOST_ENDIAN_CONVERSION
 #include <boost/endian/conversion.hpp>
 #else
 #include <boost/endian/endian.hpp>
