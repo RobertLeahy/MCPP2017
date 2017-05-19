@@ -1,7 +1,5 @@
 #	This file's contents are based on the one found here:
 #	https://github.com/philsquared/Catch/blob/master/docs/build-systems.md#cmake
-cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
-project(catch_builder CXX)
 include(ExternalProject)
 find_package(Git REQUIRED)
 ExternalProject_Add(
