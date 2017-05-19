@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
-project(rapid_json_builder CXX)
 include(ExternalProject)
 find_package(Git REQUIRED)
 ExternalProject_Add(

@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
-project(optional_builder CXX)
 include(CheckIncludeFileCXX)
 check_include_file_cxx(optional HAS_OPTIONAL)
 check_include_file_cxx(experimental/optional HAS_EXPERIMENTAL_OPTIONAL)
