@@ -1,4 +1,10 @@
 image: Visual Studio 2017
+environment:
+    global:
+        YGGDRASIL_USERNAME:
+            secure: NQy/UYa1DBl50GFy0LhE5bS2c2530ZlZIt3AVblANp0=
+        YGGDRASIL_PASSWORD:
+            secure: 6YMa9/zltl695PCS4VQKQA==
 install:
     -   ps: mkdir C:/MCPP2017
     -   ps: ./.appveyor/zlib.ps1
@@ -7,7 +13,8 @@ install:
 build_script:
     -   mkdir build
     -   cd build
-    -   cmake .. -G "Visual Studio 15 2017 Win64" -DBOOST_ROOT=C:/MCPP2017/boost_1_64_0 -DBOOST_INCLUDEDIR=C:/MCPP2017/boost_1_64_0 -DBOOST_LIBRARYDIR=C:/MCPP2017/boost_1_64_0/stage/lib -DZLIB_ROOT=C:/MCPP2017/zlib-master -DOPENSSL_ROOT_DIR=C:/MCPP2017/openssl-1.1.0e-vs2017/lib64 -DOPENSSL_USE_STATIC_LIBS=TRUE -DWINDOWS_CRYPT32_WORKAROUND=TRUE -DOPENSSL_MSVC_STATIC_RT=TRUE -DOPENSSL_INCLUDE_DIR=C:/MCPP2017/openssl-1.1.0e-vs2017/include64 -DZLIB_LIBRARY=C:/MCPP2017/zlib-master/build/Release/zlibstatic.lib
+    -   cmake .. -G "Visual Studio 15 2017 Win64" -DBOOST_ROOT=C:/MCPP2017/boost_1_64_0 -DBOOST_INCLUDEDIR=C:/MCPP2017/boost_1_64_0 -DBOOST_LIBRARYDIR=C:/MCPP2017/boost_1_64_0/stage/lib -DZLIB_ROOT=C:/MCPP2017/zlib-master -DOPENSSL_ROOT_DIR=C:/MCPP2017/openssl-1.1.0e-vs2017/lib64 -DOPENSSL_USE_STATIC_LIBS=TRUE -DWINDOWS_CRYPT32_WORKAROUND=TRUE -DOPENSSL_MSVC_STATIC_RT=TRUE -DOPENSSL_INCLUDE_DIR=C:/MCPP2017/openssl-1.1.0e-vs2017/include64 -DZLIB_LIBRARY=C:/MCPP2017/zlib-master/build/Release/zlibstatic.lib -DYGGDRASIL_USERNAME="%YGGDRASIL_USERNAME" -DYGGDRASIL_PASSWORD="%YGGDRASIL_PASSWORD%"
     -   cmake --build . --config Release
 test_script:
     -   ctest -VV -C Release
+    -   bin\Release\mcpp_yggdrasil_tests.exe [integration]
