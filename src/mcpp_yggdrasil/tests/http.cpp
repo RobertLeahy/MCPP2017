@@ -13,8 +13,10 @@
 #include <mcpp/optional.hpp>
 #include <mcpp/variant.hpp>
 #include <mcpp/yggdrasil/authenticate.hpp>
+#include <mcpp/yggdrasil/error.hpp>
 #include <mcpp/yggdrasil/json.hpp>
 #include <mcpp/yggdrasil/refresh.hpp>
+#include <sstream>
 #include <utility>
 #include <catch.hpp>
 
@@ -35,15 +37,15 @@ SCENARIO("Requests may be made against the actual Yggdrasil API", "[mcpp][yggdra
 		stream_type stream(io_service, ctx);
 		boost::asio::deadline_timer timer(io_service);
 		class timeout {	};
-		optional<variant<beast::error_code, authenticate_response, timeout>> result;
+		optional<variant<error, authenticate_response, timeout>> result;
 		timer.expires_from_now(boost::posix_time::seconds(5));
 		timer.async_wait([&] (auto) noexcept {	result.emplace(in_place_type<timeout>);	});
 		WHEN("\"authserver.mojang.com\" is resolved") {
 			boost::asio::ip::tcp::resolver::query q("authserver.mojang.com", "https");
-			optional<optional<boost::asio::ip::tcp::endpoint>> ep;
+			optional<variant<beast::error_code, optional<boost::asio::ip::tcp::endpoint>>> ep;
 			resolver.async_resolve(q, [&] (auto ec, auto iter) {
 				if (ec) {
-					result.emplace(ec);
+					ep.emplace(ec);
 					return;
 				}
 				optional<boost::asio::ip::tcp::endpoint> local;
@@ -52,14 +54,14 @@ SCENARIO("Requests may be made against the actual Yggdrasil API", "[mcpp][yggdra
 			});
 			do io_service.run_one();
 			while (!result && !ep);
-			if (result) {
-				if (get_if<timeout>(&*result)) FAIL("Timed out");
-				FAIL(get<beast::error_code>(*result).message());
-			}
-			if (!ep) FAIL("No endpoints for \"authserver.mojang.com\"");
+			if (result) FAIL("Timed out");
+			auto ec = get_if<beast::error_code>(&*ep);
+			if (ec) FAIL(ec->message());
+			auto opt_ep = get<optional<boost::asio::ip::tcp::endpoint>>(*ep);
+			if (!opt_ep) FAIL("No endpoints for \"authserver.mojang.com\"");
 			AND_WHEN("A connection is formed thereto") {
 				optional<beast::error_code> ec;
-				stream.lowest_layer().async_connect(**ep, [&] (auto local) {	ec = local;	});
+				stream.lowest_layer().async_connect(*opt_ep, [&] (auto local) {	ec = local;	});
 				do io_service.run_one();
 				while (!result && !ec);
 				if (result) FAIL("Timed out");
@@ -86,7 +88,16 @@ SCENARIO("Requests may be made against the actual Yggdrasil API", "[mcpp][yggdra
 						while (!result);
 						THEN("The response is received successfully") {
 							if (get_if<timeout>(&*result)) FAIL("Timed out");
-							if (get_if<beast::error_code>(&*result)) FAIL(get<beast::error_code>(*result).message());
+							auto ep = get_if<error>(&*result);
+							if (ep) {
+								std::ostringstream ss;
+								ss << ep->message();
+								if (ep->api) {
+									ss << " - " << ep->api->error << " - " << ep->api->error_message;
+									if (ep->api->cause) ss << " - " << *ep->api->cause;
+								}
+								FAIL(ss.str());
+							}
 							INFO(to_json(get<authenticate_response>(*result)));
 							CHECK(get_if<authenticate_response>(&*result));
 						}
@@ -110,7 +121,7 @@ SCENARIO("Authenticate REST requests may be made via AsyncStream", "[mcpp][yggdr
 			"{\"accessToken\":\"foo\",\"clientToken\":\"bar\"}"
 		);
 		beast::flat_buffer buffer;
-		optional<variant<beast::error_code, authenticate_response>> result;
+		optional<variant<error, authenticate_response>> result;
 		auto handler = [&] (auto ec, auto response) {
 			if (ec) result.emplace(std::move(ec));
 			else result.emplace(std::move(response));
@@ -153,7 +164,7 @@ SCENARIO("Refresh requests may be made via AsyncStream", "[mcpp][yggdrasil][http
 			"{\"accessToken\":\"foo\",\"clientToken\":\"bar\"}"
 		);
 		beast::flat_buffer buffer;
-		optional<variant<beast::error_code, refresh_response>> result;
+		optional<variant<error, refresh_response>> result;
 		auto handler = [&] (auto ec, auto response) {
 			if (ec) result.emplace(std::move(ec));
 			else result.emplace(std::move(response));
@@ -184,14 +195,14 @@ SCENARIO("Refresh requests may be made via AsyncStream", "[mcpp][yggdrasil][http
 }
 
 SCENARIO("REST requests which end in error are handled appropriately", "[mcpp][yggdrasil][http]") {
-	GIVEN("A model of AsyncStream which yields an HTTP response containing a status other than 200 OK") {
+	GIVEN("A model of AsyncStream which yields an HTTP response containing a non-2xx status") {
 		boost::asio::io_service io_service;
 		beast::test::string_iostream ios(
 			io_service,
 			"HTTP/1.1 403 \r\n\r\n"
 		);
 		beast::flat_buffer buffer;
-		optional<variant<beast::error_code, authenticate_response>> result;
+		optional<variant<error, authenticate_response>> result;
 		auto handler = [&] (auto ec, auto response) {
 			if (ec) result.emplace(std::move(ec));
 			else result.emplace(std::move(response));
@@ -211,9 +222,51 @@ SCENARIO("REST requests which end in error are handled appropriately", "[mcpp][y
 				);
 			}
 			THEN("The asynchronous operation ends in error") {
-				auto && ec = get<beast::error_code>(*result);
+				auto && ec = get<error>(*result);
 				CHECK(ec.value() == 403);
 				CHECK(ec.message() == "403 Forbidden");
+				CHECK_FALSE(ec.api);
+			}
+		}
+	}
+	GIVEN("A model of AsyncStream which yields an HTTP response containing a non-2xx status and a body which represents a Yggdrasil error") {
+		boost::asio::io_service io_service;
+		beast::test::string_iostream ios(
+			io_service,
+			"HTTP/1.1 500 \r\n"
+			"Content-Type: application/json; charset=utf-8\r\n"
+			"Length: 36\r\n"
+			"\r\n"
+			"{\"error\":\"foo\",\"errorMessage\":\"baz\"}"
+		);
+		beast::flat_buffer buffer;
+		optional<variant<error, authenticate_response>> result;
+		auto handler = [&] (auto ec, auto response) {
+			if (ec) result.emplace(std::move(ec));
+			else result.emplace(std::move(response));
+		};
+		WHEN("An authenticate request is submitted") {
+			authenticate_request req("corge", "bar");
+			async_http_request(ios, buffer, std::move(req), beast::http::fields{}, handler);
+			do io_service.run_one();
+			while (!result);
+			THEN("The correct HTTP request is generated") {
+				CHECK(ios.str ==
+					"POST /authenticate HTTP/1.1\r\n"
+					"Content-Type: application/json; charset=utf-8\r\n"
+					"Content-Length: 57\r\n"
+					"\r\n"
+					"{\"username\":\"corge\",\"password\":\"bar\",\"requestUser\":false}"
+				);
+			}
+			THEN("The asynchronous operation ends in the appropriacet Yggdrasil error") {
+				auto && ec = get<error>(*result);
+				CHECK(ec.value() == 500);
+				CHECK(ec.message() == "500 Internal Server Error");
+				REQUIRE(ec.api);
+				CHECK(ec.api->error == "foo");
+				CHECK(ec.api->error_message == "baz");
+				CHECK_FALSE(ec.api->cause);
 			}
 		}
 	}

@@ -1,4 +1,5 @@
 #include <mcpp/yggdrasil/json.hpp>
+#include <mcpp/yggdrasil/error.hpp>
 #include <mcpp/yggdrasil/agent.hpp>
 #include <mcpp/yggdrasil/authenticate.hpp>
 #include <mcpp/yggdrasil/profile.hpp>
@@ -404,6 +405,75 @@ SCENARIO("mcpp::yggdrasil::from_json may be used to parse an mcpp::yggdrasil::re
 					auto iter = res.user->properties.begin();
 					CHECK(iter->first == "quux");
 					CHECK(iter->second == "baz");
+				}
+			}
+		}
+	}
+}
+
+SCENARIO("mcpp::yggdrasil::to_json may be used to serialize an mcpp::yggdrasil::api_error object to JSON", "[mcpp][yggdrasil][to_json]") {
+	GIVEN("A minimial mcpp::yggdrasil::api_error object") {
+		api_error e("aoeui", "dhtns");
+		WHEN("It is serialized to JSON") {
+			auto str = to_json(e);
+			THEN("The correct JSON is returned") {
+				CHECK(str == "{"
+					"\"error\":\"aoeui\","
+					"\"errorMessage\":\"dhtns\""
+				"}");
+			}
+		}
+	}
+	GIVEN("A maximal mcpp::yggdrasil::api_error object") {
+		api_error e("aoeui", "dhtns", std::string("foo"));
+		WHEN("It is serialized to JSON") {
+			auto str = to_json(e);
+			THEN("The correct JSON is returned") {
+				CHECK(str == "{"
+					"\"error\":\"aoeui\","
+					"\"errorMessage\":\"dhtns\","
+					"\"cause\":\"foo\""
+				"}");
+			}
+		}
+	}
+}
+
+SCENARIO("mcpp::yggdrasil::from_json may be used to parse an mcpp::yggdrasil::api_error object from JSON", "[mcpp][yggdrasil][from_json]") {
+	GIVEN("A JSON string representing a minimal mcpp::yggdrasil::api_error") {
+		auto str = "{"
+			"\"error\":\"aoeui\","
+			"\"errorMessage\":\"dhtns\""
+		"}";
+		WHEN("It is parsed") {
+			auto result = from_json<api_error>(str);
+			THEN("The parse succeeds") {
+				REQUIRE(result);
+				AND_THEN("The parsed object is correct") {
+					auto && e = *result;
+					CHECK(e.error == "aoeui");
+					CHECK(e.error_message == "dhtns");
+					CHECK_FALSE(e.cause);
+				}
+			}
+		}
+	}
+	GIVEN("A JSON string representing a maximal mcpp::yggdrasil::api_error") {
+		auto str = "{"
+			"\"error\":\"aoeui\","
+			"\"errorMessage\":\"dhtns\","
+			"\"cause\":\"foo\""
+		"}";
+		WHEN("It is parsed") {
+			auto result = from_json<api_error>(str);
+			THEN("The parse succeeds") {
+				REQUIRE(result);
+				AND_THEN("The parsed object is correct") {
+					auto && e = *result;
+					CHECK(e.error == "aoeui");
+					CHECK(e.error_message == "dhtns");
+					REQUIRE(e.cause);
+					CHECK(*e.cause == "foo");
 				}
 			}
 		}

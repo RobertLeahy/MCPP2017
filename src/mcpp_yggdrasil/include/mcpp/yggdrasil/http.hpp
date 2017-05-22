@@ -5,6 +5,7 @@
 #pragma once
 
 #include "authenticate.hpp"
+#include "error.hpp"
 #include "json.hpp"
 #include "refresh.hpp"
 #include <beast/core/async_result.hpp>
@@ -57,23 +58,25 @@ template <typename Request>
 class parse_response {
 public:
 	using response_type = response_t<Request>;
-	using result_type = boost::expected<response_type, beast::error_code>;
+	using result_type = boost::expected<response_type, error>;
 	template <typename Fields>
 	static result_type parse (const beast::http::response<beast::http::string_body, Fields> & response) {
-		if (response.status != 200) return boost::make_unexpected(
-			beast::error_code(
-				response.status,
-				http_error_category()
-			)
-		);
+		if (response.status != 200) {
+			error e(beast::error_code(response.status, http_error_category()));
+			auto result = from_json<api_error>(response.body);
+			if (result) e.api = std::move(*result);
+			return boost::make_unexpected(std::move(e));
+		}
 		auto result = from_json<response_type>(response.body);
 		if (!result) {
 			auto && ec = result.error();
 			assert(ec.category() == from_json_error_category());
 			return boost::make_unexpected(
-				beast::error_code(
-					ec.value(),
-					from_json_boost_error_category()
+				error(
+					beast::error_code(
+						ec.value(),
+						from_json_boost_error_category()
+					)
 				)
 			);
 		}
@@ -145,8 +148,11 @@ private:
 		assert(ptr_->parser);
 		beast::http::async_read(ptr_->stream, ptr_->buffer, *ptr_->parser, std::move(*this));
 	}
+	void invoke (error e, response_type response = response_type{}) {
+		ptr_.invoke(std::move(e), std::move(response));
+	}
 	void invoke (beast::error_code ec, response_type response = response_type{}) {
-		ptr_.invoke(ec, std::move(response));
+		invoke(error(ec), std::move(response));
 	}
 	void done () {
 		assert(ptr_->parser);
@@ -273,7 +279,7 @@ void setup_request (const Request & req, beast::http::request<Body, Fields> & re
  *		The completion handler. Note that Boost.Asio fancy
  *		completion handlers (such as `boost::asio::use_future`)
  *		are valid here. The completion handler accepts two
- *		arguments: A `beast::error_code` as the first and an
+ *		arguments: An \ref error as the first and an
  *		object appropriate to represent the response to
  *		a request of type \em Request as the second.
  *
@@ -299,10 +305,10 @@ void setup_request (const Request & req, beast::http::request<Body, Fields> & re
  *		the right to overwrite certain header fields such as
  *		"Content-Type."
  *	\param [in] token
- *		The completion handler. The first argument shall be a
- *		`beast::error_code`. If this argument is truthy then
- *		the second argument must be ignored. The second argument
- *		shall be a response object appropriate for \em Request.
+ *		The completion handler. The first argument shall be an
+ *		\ref error. If this argument is truthy then the second
+ *		argument must be ignored. The second argument shall be
+ *		a response object appropriate for \em Request.
  *
  *	\return
  *		The value returned shall be appropriate given
@@ -320,7 +326,7 @@ template <
 >
 beast::async_return_type<
 	CompletionToken,
-	void (beast::error_code, detail::response_t<Request>)
+	void (error, detail::response_t<Request>)
 > async_http_request (
 	AsyncStream & stream,
 	DynamicBuffer & buffer,
@@ -334,7 +340,7 @@ beast::async_return_type<
 	request_type req(header_type(std::move(fields)));
 	detail::setup_request(request, req);
 	beast::http::prepare(req);
-	using Signature = void (beast::error_code, detail::response_t<Request>);
+	using Signature = void (error, detail::response_t<Request>);
 	beast::async_completion<CompletionToken, Signature> init(token);
 	detail::http_request_op<
 		AsyncStream,

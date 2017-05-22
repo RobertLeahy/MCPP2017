@@ -5,6 +5,7 @@
 #pragma once
 
 #include "authenticate.hpp"
+#include "error.hpp"
 #include "refresh.hpp"
 #include <boost/expected/expected.hpp>
 #include <boost/system/error_code.hpp>
@@ -234,6 +235,23 @@ void to_json (const refresh_response & response, std::ostream & os);
 
 template <>
 from_json_result_type<refresh_response> from_json<refresh_response> (std::istream & is);
+
+/**
+ *	Serializes a \ref api_error object to JSON
+ *	such that it is represented in the manner
+ *	in which it would be represented if it were
+ *	returned by the Yggdrasil REST API.
+ *
+ *	\param [in] e
+ *		The \ref api_error object.
+ *	\param [in] os
+ *		A `std::ostream` to which JSON shall be
+ *		written.
+ */
+void to_json (const api_error & e, std::ostream & os);
+
+template <>
+from_json_result_type<api_error> from_json<api_error> (std::istream & is);
 
 }
 }

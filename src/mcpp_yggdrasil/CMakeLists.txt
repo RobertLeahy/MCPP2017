@@ -1,6 +1,7 @@
 add_library(mcpp_yggdrasil SHARED
 	agent.cpp
 	authenticate.cpp
+	error.cpp
 	http.cpp
 	json.cpp
 	profile.cpp

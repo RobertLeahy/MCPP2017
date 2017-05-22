@@ -5,6 +5,7 @@
 #include <mcpp/variant.hpp>
 #include <mcpp/yggdrasil/agent.hpp>
 #include <mcpp/yggdrasil/authenticate.hpp>
+#include <mcpp/yggdrasil/error.hpp>
 #include <mcpp/yggdrasil/json.hpp>
 #include <mcpp/yggdrasil/profile.hpp>
 #include <mcpp/yggdrasil/refresh.hpp>
@@ -1118,6 +1119,78 @@ from_json_result_type<refresh_response> from_json<refresh_response> (std::istrea
 				user_ = true;
 				res_.user.emplace();
 				emplace<user_handler>(*res_.user);
+				return true;
+			}
+			error(from_json_error::unexpected_key);
+			return false;
+		}
+	};
+	handler h;
+	return from_json_impl(is, h);
+}
+
+void to_json (const api_error & e, std::ostream & os) {
+	to_json_wrapper([&] (auto & writer) {
+		key("error", writer);
+		to_json(e.error, writer);
+		key("errorMessage", writer);
+		to_json(e.error_message, writer);
+		if (e.cause) {
+			key("cause", writer);
+			to_json(*e.cause, writer);
+		}
+	}, os);
+}
+
+template <>
+from_json_result_type<api_error> from_json<api_error> (std::istream & is) {
+	class handler : public object_handler_base<string_handler> {
+	private:
+		using base = object_handler_base<string_handler>;
+		api_error e_;
+		bool error_;
+		bool error_message_;
+		bool cause_;
+	public:
+		handler ()
+			:	error_(false),
+				error_message_(false),
+				cause_(false)
+		{	}
+		api_error get () {
+			return std::move(e_);
+		}
+		bool done () const noexcept {
+			return error_ && error_message_ && base::done();
+		}
+		bool Key (const Ch * str, std::size_t length, bool copy) {
+			if (!parser::done()) return base::Key(str, length, copy);
+			if (strnequal("error", str, length)) {
+				if (error_) {
+					error(from_json_error::duplicate_key);
+					return false;
+				}
+				error_ = true;
+				emplace<string_handler>(e_.error);
+				return true;
+			}
+			if (strnequal("errorMessage", str, length)) {
+				if (error_message_) {
+					error(from_json_error::duplicate_key);
+					return false;
+				}
+				error_message_ = true;
+				emplace<string_handler>(e_.error_message);
+				return true;
+			}
+			if (strnequal("cause", str, length)) {
+				if (cause_) {
+					error(from_json_error::duplicate_key);
+					return false;
+				}
+				cause_ = true;
+				e_.cause.emplace();
+				emplace<string_handler>(*e_.cause);
 				return true;
 			}
 			error(from_json_error::unexpected_key);
