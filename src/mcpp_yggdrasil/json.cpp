@@ -7,6 +7,7 @@
 #include <mcpp/yggdrasil/authenticate.hpp>
 #include <mcpp/yggdrasil/json.hpp>
 #include <mcpp/yggdrasil/profile.hpp>
+#include <mcpp/yggdrasil/refresh.hpp>
 #include <mcpp/yggdrasil/user.hpp>
 #include <rapidjson/istreamwrapper.h>
 #include <rapidjson/ostreamwrapper.h>
@@ -20,7 +21,6 @@
 #include <ostream>
 #include <stdexcept>
 #include <string>
-#include <sstream>
 #include <system_error>
 #include <type_traits>
 #include <utility>
@@ -185,12 +185,6 @@ void to_json (const authenticate_request & request, std::ostream & os) {
 		key("requestUser", writer);
 		check(writer.Bool(request.request_user));
 	}, os);
-}
-
-std::string to_json (const authenticate_request & request) {
-	std::ostringstream ss;
-	to_json(request, ss);
-	return ss.str();
 }
 
 static bool strnequal (const char * a, const char * b, std::size_t count) noexcept {
@@ -852,12 +846,6 @@ void to_json (const authenticate_response & response, std::ostream & os) {
 	}, os);
 }
 
-std::string to_json (const authenticate_response & response) {
-	std::ostringstream ss;
-	to_json(response, ss);
-	return ss.str();
-}
-
 template <>
 from_json_result_type<authenticate_response> from_json<authenticate_response> (std::istream & is) {
 	class handler : public object_handler_base<
@@ -945,6 +933,195 @@ from_json_result_type<authenticate_response> from_json<authenticate_response> (s
 		}
 		authenticate_response get () {
 			return std::move(res_);
+		}
+	};
+	handler h;
+	return from_json_impl(is, h);
+}
+
+void to_json (const refresh_request & request, std::ostream & os) {
+	to_json_wrapper([&] (auto & writer) {
+		key("accessToken", writer);
+		to_json(request.access_token, writer);
+		key("clientToken", writer);
+		to_json(request.client_token, writer);
+		if (request.selected_profile) {
+			key("selectedProfile", writer);
+			to_json(*request.selected_profile, writer);
+		}
+		key("requestUser", writer);
+		check(writer.Bool(request.request_user));
+	}, os);	
+}
+
+template <>
+from_json_result_type<refresh_request> from_json<refresh_request> (std::istream & is) {
+	class handler : public object_handler_base<
+		string_handler,
+		bool_handler,
+		profile_handler
+	> {
+	private:
+		using base = object_handler_base<
+			string_handler,
+			bool_handler,
+			profile_handler
+		>;
+		refresh_request req_;
+		bool access_token_;
+		bool client_token_;
+		bool selected_profile_;
+		bool request_user_;
+	public:
+		handler ()
+			:	access_token_(false),
+				client_token_(false),
+				selected_profile_(false),
+				request_user_(false)
+		{	}
+		refresh_request get () {
+			return std::move(req_);
+		}
+		bool done () const noexcept {
+			return access_token_ && client_token_ && base::done();
+		}
+		bool Key (const Ch * str, std::size_t length, bool copy) {
+			if (!parser::done()) return base::Key(str, length, copy);
+			if (strnequal("accessToken", str, length)) {
+				if (access_token_) {
+					error(from_json_error::duplicate_key);
+					return false;
+				}
+				access_token_ = true;
+				emplace<string_handler>(req_.access_token);
+				return true;
+			}
+			if (strnequal("clientToken", str, length)) {
+				if (client_token_) {
+					error(from_json_error::duplicate_key);
+					return false;
+				}
+				client_token_ = true;
+				emplace<string_handler>(req_.client_token);
+				return true;
+			}
+			if (strnequal("selectedProfile", str, length)) {
+				if (selected_profile_) {
+					error(from_json_error::duplicate_key);
+					return false;
+				}
+				selected_profile_ = true;
+				req_.selected_profile.emplace();
+				emplace<profile_handler>(*req_.selected_profile);
+				return true;
+			}
+			if (strnequal("requestUser", str, length)) {
+				if (request_user_) {
+					error(from_json_error::duplicate_key);
+					return false;
+				}
+				request_user_ = true;
+				emplace<bool_handler>(req_.request_user);
+				return true;
+			}
+			error(from_json_error::unexpected_key);
+			return false;
+		}
+	};
+	handler h;
+	return from_json_impl(is, h);
+}
+
+void to_json (const refresh_response & response, std::ostream & os) {
+	to_json_wrapper([&] (auto & writer) {
+		key("accessToken", writer);
+		to_json(response.access_token, writer);
+		key("clientToken", writer);
+		to_json(response.client_token, writer);
+		if (response.selected_profile) {
+			key("selectedProfile", writer);
+			to_json(*response.selected_profile, writer);
+		}
+		if (response.user) {
+			key("user", writer);
+			to_json(*response.user, writer);
+		}
+	}, os);
+}
+
+template <>
+from_json_result_type<refresh_response> from_json<refresh_response> (std::istream & is) {
+	class handler : public object_handler_base<
+		string_handler,
+		profile_handler,
+		user_handler
+	> {
+	private:
+		using base = object_handler_base<
+			string_handler,
+			profile_handler,
+			user_handler
+		>;
+		refresh_response res_;
+		bool access_token_;
+		bool client_token_;
+		bool selected_profile_;
+		bool user_;
+	public:
+		handler ()
+			:	access_token_(false),
+				client_token_(false),
+				selected_profile_(false),
+				user_(false)
+		{	}
+		refresh_response get () {
+			return std::move(res_);
+		}
+		bool done () const noexcept {
+			return access_token_ && client_token_ && base::done();
+		}
+		bool Key (const Ch * str, std::size_t length, bool copy) {
+			if (!parser::done()) return base::Key(str, length, copy);
+			if (strnequal("accessToken", str, length)) {
+				if (access_token_) {
+					error(from_json_error::duplicate_key);
+					return false;
+				}
+				access_token_ = true;
+				emplace<string_handler>(res_.access_token);
+				return true;
+			}
+			if (strnequal("clientToken", str, length)) {
+				if (client_token_) {
+					error(from_json_error::duplicate_key);
+					return false;
+				}
+				client_token_ = true;
+				emplace<string_handler>(res_.client_token);
+				return true;
+			}
+			if (strnequal("selectedProfile", str, length)) {
+				if (selected_profile_) {
+					error(from_json_error::duplicate_key);
+					return false;
+				}
+				selected_profile_ = true;
+				res_.selected_profile.emplace();
+				emplace<profile_handler>(*res_.selected_profile);
+				return true;
+			}
+			if (strnequal("user", str, length)) {
+				if (user_) {
+					error(from_json_error::duplicate_key);
+					return false;
+				}
+				user_ = true;
+				res_.user.emplace();
+				emplace<user_handler>(*res_.user);
+				return true;
+			}
+			error(from_json_error::unexpected_key);
+			return false;
 		}
 	};
 	handler h;

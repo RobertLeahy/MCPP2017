@@ -14,6 +14,7 @@
 #include <mcpp/variant.hpp>
 #include <mcpp/yggdrasil/authenticate.hpp>
 #include <mcpp/yggdrasil/json.hpp>
+#include <mcpp/yggdrasil/refresh.hpp>
 #include <utility>
 #include <catch.hpp>
 
@@ -97,7 +98,7 @@ SCENARIO("Requests may be made against the actual Yggdrasil API", "[mcpp][yggdra
 }
 #endif
 
-SCENARIO("Yggdrasil REST requests may be made via AsyncStream", "[mcpp][yggdrasil][http]") {
+SCENARIO("Authenticate REST requests may be made via AsyncStream", "[mcpp][yggdrasil][http]") {
 	GIVEN("A model of AsyncStream which yields the HTTP response to an authenticate request") {
 		boost::asio::io_service io_service;
 		beast::test::string_iostream ios(
@@ -138,6 +139,51 @@ SCENARIO("Yggdrasil REST requests may be made via AsyncStream", "[mcpp][yggdrasi
 			}
 		}
 	}
+}
+
+SCENARIO("Refresh requests may be made via AsyncStream", "[mcpp][yggdrasil][http]") {
+	GIVEN("A model of AsyncStream which yields the HTTP response to a refresh request") {
+		boost::asio::io_service io_service;
+		beast::test::string_iostream ios(
+			io_service,
+			"HTTP/1.1 200 OK\r\n"
+			"Content-Type: application/json; charset=utf8\r\n"
+			"Content-Length: 41\r\n"
+			"\r\n"
+			"{\"accessToken\":\"foo\",\"clientToken\":\"bar\"}"
+		);
+		beast::flat_buffer buffer;
+		optional<variant<beast::error_code, refresh_response>> result;
+		auto handler = [&] (auto ec, auto response) {
+			if (ec) result.emplace(std::move(ec));
+			else result.emplace(std::move(response));
+		};
+		WHEN("A refresh request is submitted") {
+			refresh_request req("baz", "quux");
+			async_http_request(ios, buffer, std::move(req), beast::http::fields{}, handler);
+			do io_service.run_one();
+			while (!result);
+			THEN("The correct HTTP request is generated") {
+				CHECK(ios.str ==
+					"POST /refresh HTTP/1.1\r\n"
+					"Content-Type: application/json; charset=utf-8\r\n"
+					"Content-Length: 62\r\n"
+					"\r\n"
+					"{\"accessToken\":\"baz\",\"clientToken\":\"quux\",\"requestUser\":false}"
+				);
+			}
+			THEN("The correct response is successfully parsed") {
+				auto && res = get<refresh_response>(*result);
+				CHECK(res.access_token == "foo");
+				CHECK(res.client_token == "bar");
+				CHECK_FALSE(res.selected_profile);
+				CHECK_FALSE(res.user);
+			}
+		}
+	}
+}
+
+SCENARIO("REST requests which end in error are handled appropriately", "[mcpp][yggdrasil][http]") {
 	GIVEN("A model of AsyncStream which yields an HTTP response containing a status other than 200 OK") {
 		boost::asio::io_service io_service;
 		beast::test::string_iostream ios(

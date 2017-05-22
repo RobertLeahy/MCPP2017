@@ -6,6 +6,7 @@
 
 #include "authenticate.hpp"
 #include "json.hpp"
+#include "refresh.hpp"
 #include <beast/core/async_result.hpp>
 #include <beast/core/error.hpp>
 #include <beast/core/handler_alloc.hpp>
@@ -44,6 +45,8 @@ template <typename Request>
 class response_helper;
 template <>
 class response_helper<authenticate_request> : public response_base<authenticate_response> {	};
+template <>
+class response_helper<refresh_request> : public response_base<refresh_response> {	};
 
 template <typename Request>
 using response_t = typename response_helper<Request>::type;
@@ -229,6 +232,10 @@ void setup_request_content_type (const Request &, beast::http::request<Body, Fie
 template <typename Body, typename Fields>
 void setup_request_target (const authenticate_request &, beast::http::request<Body, Fields> & request) {
 	request.target("/authenticate");
+}
+template <typename Body, typename Fields>
+void setup_request_target (const refresh_request &, beast::http::request<Body, Fields> & request) {
+	request.target("/refresh");
 }
 
 template <typename Request, typename Body, typename Fields>

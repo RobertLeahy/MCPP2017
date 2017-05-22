@@ -4,6 +4,7 @@ add_library(mcpp_yggdrasil SHARED
 	http.cpp
 	json.cpp
 	profile.cpp
+	refresh.cpp
 	user.cpp
 )
 target_include_directories(mcpp_yggdrasil
