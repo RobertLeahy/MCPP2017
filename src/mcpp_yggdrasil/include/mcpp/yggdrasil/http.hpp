@@ -8,6 +8,7 @@
 #include "error.hpp"
 #include "json.hpp"
 #include "refresh.hpp"
+#include "signout.hpp"
 #include "validate.hpp"
 #include <beast/core/async_result.hpp>
 #include <beast/core/error.hpp>
@@ -30,6 +31,7 @@
 #include <memory>
 #include <stdexcept>
 #include <tuple>
+#include <type_traits>
 #include <utility>
 
 namespace mcpp {
@@ -51,6 +53,8 @@ template <>
 class response_helper<refresh_request> : public response_base<refresh_response> {	};
 template <>
 class response_helper<validate_request> : public response_base<validate_response> {	};
+template <>
+class response_helper<signout_request> : public response_base<signout_response> {	};
 
 template <typename Request>
 using response_t = typename response_helper<Request>::type;
@@ -64,6 +68,26 @@ boost::unexpected_type<error> parse_error (const beast::http::response<beast::ht
 	if (result) e.api = std::move(*result);
 	return boost::make_unexpected(std::move(e));
 }
+
+class void_parser {
+public:
+	using response_type = void;
+	using result_type = boost::expected<void, error>;
+	template <typename Fields>
+	static result_type parse (const beast::http::response<beast::http::string_body, Fields> & response) {
+		if (response.status != 204) return parse_error(response);
+		//	The expected library is broken apparently so
+		//	neither of these work:
+		//
+		//	return result_type{};
+		//	return boost::make_expected<error>();
+		//
+		//	Even though best I can tell the propasal says
+		//	either should work
+		boost::expected<int, error> workaround(0);
+		return workaround.map([] (auto) noexcept {	});
+	}
+};
 
 template <typename Request>
 class parse_response {
@@ -107,6 +131,8 @@ public:
 		return parse_error(response);
 	}
 };
+template <>
+class parse_response<signout_request> : public void_parser {	};
 
 template <
 	typename AsyncStream,
@@ -172,17 +198,28 @@ private:
 		assert(ptr_->parser);
 		beast::http::async_read(ptr_->stream, ptr_->buffer, *ptr_->parser, std::move(*this));
 	}
-	void invoke (error e, response_type response = response_type{}) {
-		ptr_.invoke(std::move(e), std::move(response));
+	template <typename T, typename Response = response_t<Request>>
+	std::enable_if_t<std::is_same<Response, void>::value> invoke (T && e) {
+		error err(std::forward<T>(e));
+		ptr_.invoke(std::move(err));
 	}
-	void invoke (beast::error_code ec, response_type response = response_type{}) {
-		invoke(error(ec), std::move(response));
+	template <typename T, typename Response = response_t<Request>>
+	std::enable_if_t<!std::is_same<Response, void>::value> invoke (T && e) {
+		error err(std::forward<T>(e));
+		ptr_.invoke(std::move(err), Response{});
+	}
+	template <typename T>
+	void invoke (boost::expected<T, error> ex) {
+		if (ex) ptr_.invoke(error{}, std::move(*ex));
+		else ptr_.invoke(std::move(ex.error()), T{});
+	}
+	void invoke (boost::expected<void, error> ex) {
+		if (ex) ptr_.invoke(error{});
+		else ptr_.invoke(std::move(ex.error()));
 	}
 	void done () {
 		assert(ptr_->parser);
-		auto result = parse_response<Request>::parse(ptr_->parser->get());
-		if (!result) invoke(result.error());
-		else invoke(beast::error_code{}, std::move(*result));
+		invoke(parse_response<Request>::parse(ptr_->parser->get()));
 	}
 public:
 	http_request_op () = delete;
@@ -271,6 +308,10 @@ template <typename Body, typename Fields>
 void setup_request_target (const validate_request &, beast::http::request<Body, Fields> & request) {
 	request.target("/validate");
 }
+template <typename Body, typename Fields>
+void setup_request_target (const signout_request &, beast::http::request<Body, Fields> & request) {
+	request.target("/signout");
+}
 
 template <typename Request, typename Body, typename Fields>
 void setup_request_body (const Request & req, beast::http::request<Body, Fields> & request) {
@@ -285,6 +326,20 @@ void setup_request (const Request & req, beast::http::request<Body, Fields> & re
 	detail::setup_request_content_type(req, request);
 	detail::setup_request_body(req, request);
 };
+
+template <typename Response>
+class signature_helper {
+public:
+	using type = void (error, Response);
+};
+template <>
+class signature_helper<void> {
+public:
+	using type = void (error);
+};
+
+template <typename Request>
+using signature_t = typename signature_helper<response_t<Request>>::type;
 
 }
 
@@ -354,7 +409,7 @@ template <
 >
 beast::async_return_type<
 	CompletionToken,
-	void (error, detail::response_t<Request>)
+	detail::signature_t<Request>
 > async_http_request (
 	AsyncStream & stream,
 	DynamicBuffer & buffer,
@@ -368,7 +423,7 @@ beast::async_return_type<
 	request_type req(header_type(std::move(fields)));
 	detail::setup_request(request, req);
 	beast::http::prepare(req);
-	using Signature = void (error, detail::response_t<Request>);
+	using Signature = detail::signature_t<Request>;
 	beast::async_completion<CompletionToken, Signature> init(token);
 	detail::http_request_op<
 		AsyncStream,

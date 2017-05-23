@@ -4,6 +4,7 @@
 #include <mcpp/yggdrasil/authenticate.hpp>
 #include <mcpp/yggdrasil/profile.hpp>
 #include <mcpp/yggdrasil/refresh.hpp>
+#include <mcpp/yggdrasil/signout.hpp>
 #include <mcpp/yggdrasil/user.hpp>
 #include <mcpp/yggdrasil/validate.hpp>
 #include <string>
@@ -538,6 +539,41 @@ SCENARIO("mcpp::yggdrasil::from_json may be used to parse an mcpp::yggdrasil::va
 					CHECK(req.access_token == "quux");
 					REQUIRE(req.client_token);
 					CHECK(*req.client_token == "corge");
+				}
+			}
+		}
+	}
+}
+
+SCENARIO("mcpp::yggdrasil::to_json may be used to serialize an mcpp::yggdrasil::signout_request object to JSON", "[mcpp][yggdrasil][to_json]") {
+	GIVEN("A minimial mcpp::yggdrasil::signout_request object") {
+		signout_request req("corge", "foo");
+		WHEN("It is serialized to JSON") {
+			auto str = to_json(req);
+			THEN("The correct JSON is returned") {
+				CHECK(str == "{"
+					"\"username\":\"corge\","
+					"\"password\":\"foo\""
+				"}");
+			}
+		}
+	}
+}
+
+SCENARIO("mcpp::yggdrasil::from_json may be used to parse an mcpp::yggdrasil::signout_request object from JSON", "[mcpp][yggdrasil][from_json]") {
+	GIVEN("A JSON string representing a minimal mcpp::yggdrasil::signout_request") {
+		auto str = "{"
+			"\"username\":\"corge\","
+			"\"password\":\"foo\""
+		"}";
+		WHEN("It is parsed") {
+			auto result = from_json<signout_request>(str);
+			THEN("The parse succeeds") {
+				REQUIRE(result);
+				AND_THEN("The parsed object is correct") {
+					auto && req = *result;
+					CHECK(req.username == "corge");
+					CHECK(req.password == "foo");
 				}
 			}
 		}

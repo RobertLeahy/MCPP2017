@@ -6,6 +6,7 @@ add_library(mcpp_yggdrasil SHARED
 	json.cpp
 	profile.cpp
 	refresh.cpp
+	signout.cpp
 	user.cpp
 	validate.cpp
 )

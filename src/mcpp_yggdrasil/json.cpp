@@ -9,6 +9,7 @@
 #include <mcpp/yggdrasil/json.hpp>
 #include <mcpp/yggdrasil/profile.hpp>
 #include <mcpp/yggdrasil/refresh.hpp>
+#include <mcpp/yggdrasil/signout.hpp>
 #include <mcpp/yggdrasil/user.hpp>
 #include <mcpp/yggdrasil/validate.hpp>
 #include <rapidjson/istreamwrapper.h>
@@ -1251,6 +1252,62 @@ from_json_result_type<validate_request> from_json<validate_request> (std::istrea
 				client_token_ = true;
 				req_.client_token.emplace();
 				emplace<string_handler>(*req_.client_token);
+				return true;
+			}
+			error(from_json_error::unexpected_key);
+			return false;
+		}
+	};
+	handler h;
+	return from_json_impl(is, h);
+}
+
+void to_json (const signout_request & request, std::ostream & os) {
+	to_json_wrapper([&] (auto & writer) {
+		key("username", writer);
+		to_json(request.username, writer);
+		key("password", writer);
+		to_json(request.password, writer);
+	}, os);
+}
+
+template <>
+from_json_result_type<signout_request> from_json<signout_request> (std::istream & is) {
+	class handler : public object_handler_base<string_handler> {
+	private:
+		using base = object_handler_base<string_handler>;
+		signout_request req_;
+		bool username_;
+		bool password_;
+	public:
+		handler ()
+			:	username_(false),
+				password_(false)
+		{	}
+		signout_request get () {
+			return std::move(req_);
+		}
+		bool done () const noexcept {
+			return username_ && password_ && base::done();
+		}
+		bool Key (const Ch * str, std::size_t length, bool copy) {
+			if (!parser::done()) return base::Key(str, length, copy);
+			if (strnequal("username", str, length)) {
+				if (username_) {
+					error(from_json_error::duplicate_key);
+					return false;
+				}
+				username_ = true;
+				emplace<string_handler>(req_.username);
+				return true;
+			}
+			if (strnequal("password", str, length)) {
+				if (password_) {
+					error(from_json_error::duplicate_key);
+					return false;
+				}
+				password_ = true;
+				emplace<string_handler>(req_.password);
 				return true;
 			}
 			error(from_json_error::unexpected_key);

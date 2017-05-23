@@ -7,6 +7,7 @@
 #include "authenticate.hpp"
 #include "error.hpp"
 #include "refresh.hpp"
+#include "signout.hpp"
 #include "validate.hpp"
 #include <boost/expected/expected.hpp>
 #include <boost/system/error_code.hpp>
@@ -271,6 +272,21 @@ void to_json (const validate_request & request, std::ostream & os);
 
 template <>
 from_json_result_type<validate_request> from_json<validate_request> (std::istream & is);
+
+/**
+ *	Serializes a \ref signout_request to JSON
+ *	for submission to the Yggdrasil REST API.
+ *
+ *	\param [in] request
+ *		The \ref signout_request to serialize.
+ *	\param [in] os
+ *		A `std::ostream` to which JSON shall be
+ *		written.
+ */
+void to_json (const signout_request & request, std::ostream & os);
+
+template <>
+from_json_result_type<signout_request> from_json<signout_request> (std::istream & is);
 
 }
 }

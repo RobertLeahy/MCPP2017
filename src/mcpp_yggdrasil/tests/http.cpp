@@ -16,6 +16,7 @@
 #include <mcpp/yggdrasil/error.hpp>
 #include <mcpp/yggdrasil/json.hpp>
 #include <mcpp/yggdrasil/refresh.hpp>
+#include <mcpp/yggdrasil/signout.hpp>
 #include <mcpp/yggdrasil/validate.hpp>
 #include <sstream>
 #include <string>
@@ -256,6 +257,37 @@ SCENARIO("Validate requests may be made via AsyncStream", "[mcpp][yggdrasil][htt
 			}
 			THEN("The correct response is successfully parsed") {
 				CHECK(!get<validate_response>(*result));
+			}
+		}
+	}
+}
+
+SCENARIO("Signout requests may be made via AsyncStream", "[mcpp][yggdrasil][http]") {
+	GIVEN("A model of AsyncStream which yields the HTTP response to a successful signout request") {
+		boost::asio::io_service io_service;
+		beast::test::string_iostream ios(
+			io_service,
+			"HTTP/1.1 204 No Content\r\n\r\n"
+		);
+		beast::flat_buffer buffer;
+		optional<error> result;
+		auto handler = [&] (auto ec) {	result.emplace(ec);	};
+		WHEN("A validate request is submitted") {
+			signout_request req("foo", "bar");
+			async_http_request(ios, buffer, std::move(req), beast::http::fields{}, handler);
+			do io_service.run_one();
+			while (!result);
+			THEN("The correct HTTP request is generated") {
+				CHECK(ios.str ==
+					"POST /signout HTTP/1.1\r\n"
+					"Content-Type: application/json; charset=utf-8\r\n"
+					"Content-Length: 35\r\n"
+					"\r\n"
+					"{\"username\":\"foo\",\"password\":\"bar\"}"
+				);
+			}
+			THEN("The correct response is successfully parsed") {
+				CHECK_FALSE(*result);
 			}
 		}
 	}
