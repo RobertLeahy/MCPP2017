@@ -8,6 +8,7 @@
 #include "error.hpp"
 #include "json.hpp"
 #include "refresh.hpp"
+#include "validate.hpp"
 #include <beast/core/async_result.hpp>
 #include <beast/core/error.hpp>
 #include <beast/core/handler_alloc.hpp>
@@ -48,11 +49,21 @@ template <>
 class response_helper<authenticate_request> : public response_base<authenticate_response> {	};
 template <>
 class response_helper<refresh_request> : public response_base<refresh_response> {	};
+template <>
+class response_helper<validate_request> : public response_base<validate_response> {	};
 
 template <typename Request>
 using response_t = typename response_helper<Request>::type;
 
 const boost::system::error_category & http_error_category ();
+
+template <typename Fields>
+boost::unexpected_type<error> parse_error (const beast::http::response<beast::http::string_body, Fields> & response) {
+	error e(beast::error_code(response.status, http_error_category()));
+	auto result = from_json<api_error>(response.body);
+	if (result) e.api = std::move(*result);
+	return boost::make_unexpected(std::move(e));
+}
 
 template <typename Request>
 class parse_response {
@@ -61,12 +72,7 @@ public:
 	using result_type = boost::expected<response_type, error>;
 	template <typename Fields>
 	static result_type parse (const beast::http::response<beast::http::string_body, Fields> & response) {
-		if (response.status != 200) {
-			error e(beast::error_code(response.status, http_error_category()));
-			auto result = from_json<api_error>(response.body);
-			if (result) e.api = std::move(*result);
-			return boost::make_unexpected(std::move(e));
-		}
+		if (response.status != 200) return parse_error(response);
 		auto result = from_json<response_type>(response.body);
 		if (!result) {
 			auto && ec = result.error();
@@ -81,6 +87,24 @@ public:
 			);
 		}
 		return std::move(*result);
+	}
+};
+template <>
+class parse_response<validate_request> {
+public:
+	using response_type = bool;
+	using result_type = boost::expected<bool, error>;
+	template <typename Fields>
+	static result_type parse (const beast::http::response<beast::http::string_body, Fields> & response) {
+		switch (response.status) {
+		case 204:
+			return true;
+		case 403:
+			return false;
+		default:
+			break;
+		}
+		return parse_error(response);
 	}
 };
 
@@ -242,6 +266,10 @@ void setup_request_target (const authenticate_request &, beast::http::request<Bo
 template <typename Body, typename Fields>
 void setup_request_target (const refresh_request &, beast::http::request<Body, Fields> & request) {
 	request.target("/refresh");
+}
+template <typename Body, typename Fields>
+void setup_request_target (const validate_request &, beast::http::request<Body, Fields> & request) {
+	request.target("/validate");
 }
 
 template <typename Request, typename Body, typename Fields>

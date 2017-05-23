@@ -5,6 +5,7 @@
 #include <mcpp/yggdrasil/profile.hpp>
 #include <mcpp/yggdrasil/refresh.hpp>
 #include <mcpp/yggdrasil/user.hpp>
+#include <mcpp/yggdrasil/validate.hpp>
 #include <string>
 #include <utility>
 #include <catch.hpp>
@@ -474,6 +475,69 @@ SCENARIO("mcpp::yggdrasil::from_json may be used to parse an mcpp::yggdrasil::ap
 					CHECK(e.error_message == "dhtns");
 					REQUIRE(e.cause);
 					CHECK(*e.cause == "foo");
+				}
+			}
+		}
+	}
+}
+
+SCENARIO("mcpp::yggdrasil::to_json may be used to serialize an mcpp::yggdrasil::validate_request object to JSON", "[mcpp][yggdrasil][to_json]") {
+	GIVEN("A minimial mcpp::yggdrasil::validate_request object") {
+		validate_request req("quux");
+		WHEN("It is serialized to JSON") {
+			auto str = to_json(req);
+			THEN("The correct JSON is returned") {
+				CHECK(str == "{"
+					"\"accessToken\":\"quux\""
+				"}");
+			}
+		}
+	}
+	GIVEN("A maximal mcpp::yggdrasil::validate_request object") {
+		validate_request req("quux", std::string("corge"));
+		WHEN("It is serialized to JSON") {
+			auto str = to_json(req);
+			THEN("The correct JSON is returned") {
+				CHECK(str == "{"
+					"\"accessToken\":\"quux\","
+					"\"clientToken\":\"corge\""
+				"}");
+			}
+		}
+	}
+}
+
+SCENARIO("mcpp::yggdrasil::from_json may be used to parse an mcpp::yggdrasil::validate_request object from JSON", "[mcpp][yggdrasil][from_json]") {
+	GIVEN("A JSON string representing a minimal mcpp::yggdrasil::validate_request") {
+		auto str = "{"
+			"\"accessToken\":\"quux\""
+		"}";
+		WHEN("It is parsed") {
+			auto result = from_json<validate_request>(str);
+			THEN("The parse succeeds") {
+				REQUIRE(result);
+				AND_THEN("The parsed object is correct") {
+					auto && req = *result;
+					CHECK(req.access_token == "quux");
+					CHECK_FALSE(req.client_token);
+				}
+			}
+		}
+	}
+	GIVEN("A JSON string representing a maximal mcpp::yggdrasil::validate_request") {
+		auto str = "{"
+			"\"accessToken\":\"quux\","
+			"\"clientToken\":\"corge\""
+		"}";
+		WHEN("It is parsed") {
+			auto result = from_json<validate_request>(str);
+			THEN("The parse succeeds") {
+				REQUIRE(result);
+				AND_THEN("The parsed object is correct") {
+					auto && req = *result;
+					CHECK(req.access_token == "quux");
+					REQUIRE(req.client_token);
+					CHECK(*req.client_token == "corge");
 				}
 			}
 		}

@@ -7,6 +7,7 @@
 #include "authenticate.hpp"
 #include "error.hpp"
 #include "refresh.hpp"
+#include "validate.hpp"
 #include <boost/expected/expected.hpp>
 #include <boost/system/error_code.hpp>
 #include <mcpp/buffer.hpp>
@@ -252,6 +253,24 @@ void to_json (const api_error & e, std::ostream & os);
 
 template <>
 from_json_result_type<api_error> from_json<api_error> (std::istream & is);
+
+/**
+ *	Serializes a \ref validate_request object to
+ *	JSON such that it is represented in a manner
+ *	acceptable for submission to the Yggdrasil
+ *	REST API.
+ *
+ *	\param [in] request
+ *		The \ref validate_request to serialize.
+ *	\param [in] os
+ *		A `std::ostream` to which the JSON
+ *		representation of \em request shall be
+ *		written.
+ */
+void to_json (const validate_request & request, std::ostream & os);
+
+template <>
+from_json_result_type<validate_request> from_json<validate_request> (std::istream & is);
 
 }
 }

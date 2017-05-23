@@ -7,6 +7,7 @@ add_library(mcpp_yggdrasil SHARED
 	profile.cpp
 	refresh.cpp
 	user.cpp
+	validate.cpp
 )
 target_include_directories(mcpp_yggdrasil
 	PUBLIC

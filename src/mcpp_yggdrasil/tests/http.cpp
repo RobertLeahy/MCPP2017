@@ -16,7 +16,9 @@
 #include <mcpp/yggdrasil/error.hpp>
 #include <mcpp/yggdrasil/json.hpp>
 #include <mcpp/yggdrasil/refresh.hpp>
+#include <mcpp/yggdrasil/validate.hpp>
 #include <sstream>
+#include <string>
 #include <utility>
 #include <catch.hpp>
 
@@ -189,6 +191,71 @@ SCENARIO("Refresh requests may be made via AsyncStream", "[mcpp][yggdrasil][http
 				CHECK(res.client_token == "bar");
 				CHECK_FALSE(res.selected_profile);
 				CHECK_FALSE(res.user);
+			}
+		}
+	}
+}
+
+SCENARIO("Validate requests may be made via AsyncStream", "[mcpp][yggdrasil][http]") {
+	GIVEN("A model of AsyncStream which yields the HTTP response to a successful validate request") {
+		boost::asio::io_service io_service;
+		beast::test::string_iostream ios(
+			io_service,
+			"HTTP/1.1 204 No Content\r\n\r\n"
+		);
+		beast::flat_buffer buffer;
+		optional<variant<error, validate_response>> result;
+		auto handler = [&] (auto ec, auto response) {
+			if (ec) result.emplace(std::move(ec));
+			else result.emplace(std::move(response));
+		};
+		WHEN("A validate request is submitted") {
+			validate_request req("corge");
+			async_http_request(ios, buffer, std::move(req), beast::http::fields{}, handler);
+			do io_service.run_one();
+			while (!result);
+			THEN("The correct HTTP request is generated") {
+				CHECK(ios.str ==
+					"POST /validate HTTP/1.1\r\n"
+					"Content-Type: application/json; charset=utf-8\r\n"
+					"Content-Length: 23\r\n"
+					"\r\n"
+					"{\"accessToken\":\"corge\"}"
+				);
+			}
+			THEN("The correct response is successfully parsed") {
+				CHECK(get<validate_response>(*result));
+			}
+		}
+	}
+	GIVEN("A model of AsyncStream which yields the HTTP response to an unsuccessful validate request") {
+		boost::asio::io_service io_service;
+		beast::test::string_iostream ios(
+			io_service,
+			"HTTP/1.1 403 Forbidden\r\n\r\n"
+		);
+		beast::flat_buffer buffer;
+		optional<variant<error, validate_response>> result;
+		auto handler = [&] (auto ec, auto response) {
+			if (ec) result.emplace(std::move(ec));
+			else result.emplace(std::move(response));
+		};
+		WHEN("A validate request is submitted") {
+			validate_request req("corge", std::string("quux"));
+			async_http_request(ios, buffer, std::move(req), beast::http::fields{}, handler);
+			do io_service.run_one();
+			while (!result);
+			THEN("The correct HTTP request is generated") {
+				CHECK(ios.str ==
+					"POST /validate HTTP/1.1\r\n"
+					"Content-Type: application/json; charset=utf-8\r\n"
+					"Content-Length: 44\r\n"
+					"\r\n"
+					"{\"accessToken\":\"corge\",\"clientToken\":\"quux\"}"
+				);
+			}
+			THEN("The correct response is successfully parsed") {
+				CHECK(!get<validate_response>(*result));
 			}
 		}
 	}

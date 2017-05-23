@@ -10,6 +10,7 @@
 #include <mcpp/yggdrasil/profile.hpp>
 #include <mcpp/yggdrasil/refresh.hpp>
 #include <mcpp/yggdrasil/user.hpp>
+#include <mcpp/yggdrasil/validate.hpp>
 #include <rapidjson/istreamwrapper.h>
 #include <rapidjson/ostreamwrapper.h>
 #include <rapidjson/reader.h>
@@ -1191,6 +1192,65 @@ from_json_result_type<api_error> from_json<api_error> (std::istream & is) {
 				cause_ = true;
 				e_.cause.emplace();
 				emplace<string_handler>(*e_.cause);
+				return true;
+			}
+			error(from_json_error::unexpected_key);
+			return false;
+		}
+	};
+	handler h;
+	return from_json_impl(is, h);
+}
+
+void to_json (const validate_request & request, std::ostream & os) {
+	to_json_wrapper([&] (auto & writer) {
+		key("accessToken", writer);
+		to_json(request.access_token, writer);
+		if (request.client_token) {
+			key("clientToken", writer);
+			to_json(*request.client_token, writer);
+		}
+	}, os);
+}
+
+template <>
+from_json_result_type<validate_request> from_json<validate_request> (std::istream & is) {
+	class handler : public object_handler_base<string_handler> {
+	private:
+		using base = object_handler_base<string_handler>;
+		validate_request req_;
+		bool access_token_;
+		bool client_token_;
+	public:
+		handler ()
+			:	access_token_(false),
+				client_token_(false)
+		{	}
+		validate_request get () {
+			return std::move(req_);
+		}
+		bool done () const noexcept {
+			return access_token_ && base::done();
+		}
+		bool Key (const Ch * str, std::size_t length, bool copy) {
+			if (!parser::done()) return base::Key(str, length, copy);
+			if (strnequal("accessToken", str, length)) {
+				if (access_token_) {
+					error(from_json_error::duplicate_key);
+					return false;
+				}
+				access_token_ = true;
+				emplace<string_handler>(req_.access_token);
+				return true;
+			}
+			if (strnequal("clientToken", str, length)) {
+				if (client_token_) {
+					error(from_json_error::duplicate_key);
+					return false;
+				}
+				client_token_ = true;
+				req_.client_token.emplace();
+				emplace<string_handler>(*req_.client_token);
 				return true;
 			}
 			error(from_json_error::unexpected_key);
