@@ -6,6 +6,7 @@
 
 #include "authenticate.hpp"
 #include "error.hpp"
+#include "invalidate.hpp"
 #include "json.hpp"
 #include "refresh.hpp"
 #include "signout.hpp"
@@ -55,6 +56,8 @@ template <>
 class response_helper<validate_request> : public response_base<validate_response> {	};
 template <>
 class response_helper<signout_request> : public response_base<signout_response> {	};
+template <>
+class response_helper<invalidate_request> : public response_base<invalidate_response> {	};
 
 template <typename Request>
 using response_t = typename response_helper<Request>::type;
@@ -133,6 +136,8 @@ public:
 };
 template <>
 class parse_response<signout_request> : public void_parser {	};
+template <>
+class parse_response<invalidate_request> : public void_parser {	};
 
 template <
 	typename AsyncStream,
@@ -311,6 +316,10 @@ void setup_request_target (const validate_request &, beast::http::request<Body, 
 template <typename Body, typename Fields>
 void setup_request_target (const signout_request &, beast::http::request<Body, Fields> & request) {
 	request.target("/signout");
+}
+template <typename Body, typename Fields>
+void setup_request_target (const invalidate_request &, beast::http::request<Body, Fields> & request) {
+	request.target("/invalidate");
 }
 
 template <typename Request, typename Body, typename Fields>

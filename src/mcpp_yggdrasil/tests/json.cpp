@@ -2,6 +2,7 @@
 #include <mcpp/yggdrasil/error.hpp>
 #include <mcpp/yggdrasil/agent.hpp>
 #include <mcpp/yggdrasil/authenticate.hpp>
+#include <mcpp/yggdrasil/invalidate.hpp>
 #include <mcpp/yggdrasil/profile.hpp>
 #include <mcpp/yggdrasil/refresh.hpp>
 #include <mcpp/yggdrasil/signout.hpp>
@@ -574,6 +575,41 @@ SCENARIO("mcpp::yggdrasil::from_json may be used to parse an mcpp::yggdrasil::si
 					auto && req = *result;
 					CHECK(req.username == "corge");
 					CHECK(req.password == "foo");
+				}
+			}
+		}
+	}
+}
+
+SCENARIO("mcpp::yggdrasil::to_json may be used to serialize an mcpp::yggdrasil::invalidate_request object to JSON", "[mcpp][yggdrasil][to_json]") {
+	GIVEN("A minimial mcpp::yggdrasil::invalidate_request object") {
+		invalidate_request req("bar", "baz");
+		WHEN("It is serialized to JSON") {
+			auto str = to_json(req);
+			THEN("The correct JSON is returned") {
+				CHECK(str == "{"
+					"\"accessToken\":\"bar\","
+					"\"clientToken\":\"baz\""
+				"}");
+			}
+		}
+	}
+}
+
+SCENARIO("mcpp::yggdrasil::from_json may be used to parse an mcpp::yggdrasil::invalidate_request object from JSON", "[mcpp][yggdrasil][from_json]") {
+	GIVEN("A JSON string representing a minimal mcpp::yggdrasil::invalidate_request") {
+		auto str = "{"
+			"\"accessToken\":\"bar\","
+			"\"clientToken\":\"baz\""
+		"}";
+		WHEN("It is parsed") {
+			auto result = from_json<invalidate_request>(str);
+			THEN("The parse succeeds") {
+				REQUIRE(result);
+				AND_THEN("The parsed object is correct") {
+					auto && req = *result;
+					CHECK(req.access_token == "bar");
+					CHECK(req.client_token == "baz");
 				}
 			}
 		}

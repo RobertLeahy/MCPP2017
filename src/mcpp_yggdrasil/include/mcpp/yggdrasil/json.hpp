@@ -6,6 +6,7 @@
 
 #include "authenticate.hpp"
 #include "error.hpp"
+#include "invalidate.hpp"
 #include "refresh.hpp"
 #include "signout.hpp"
 #include "validate.hpp"
@@ -287,6 +288,21 @@ void to_json (const signout_request & request, std::ostream & os);
 
 template <>
 from_json_result_type<signout_request> from_json<signout_request> (std::istream & is);
+
+/**
+ *	Serializes a \ref invalidate_request to JSON
+ *	for submission to the Yggdrasil REST API.
+ *
+ *	\param [in] request
+ *		The \ref invalidate_request to serialize.
+ *	\param [in] os
+ *		A `std::ostream` to which JSON shall be
+ *		written.
+ */
+void to_json (const invalidate_request & request, std::ostream & os);
+
+template <>
+from_json_result_type<invalidate_request> from_json<invalidate_request> (std::istream & is);
 
 }
 }

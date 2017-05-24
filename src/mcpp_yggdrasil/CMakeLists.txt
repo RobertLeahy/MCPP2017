@@ -3,6 +3,7 @@ add_library(mcpp_yggdrasil SHARED
 	authenticate.cpp
 	error.cpp
 	http.cpp
+	invalidate.cpp
 	json.cpp
 	profile.cpp
 	refresh.cpp

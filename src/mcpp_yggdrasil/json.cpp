@@ -6,6 +6,7 @@
 #include <mcpp/yggdrasil/agent.hpp>
 #include <mcpp/yggdrasil/authenticate.hpp>
 #include <mcpp/yggdrasil/error.hpp>
+#include <mcpp/yggdrasil/invalidate.hpp>
 #include <mcpp/yggdrasil/json.hpp>
 #include <mcpp/yggdrasil/profile.hpp>
 #include <mcpp/yggdrasil/refresh.hpp>
@@ -1308,6 +1309,62 @@ from_json_result_type<signout_request> from_json<signout_request> (std::istream 
 				}
 				password_ = true;
 				emplace<string_handler>(req_.password);
+				return true;
+			}
+			error(from_json_error::unexpected_key);
+			return false;
+		}
+	};
+	handler h;
+	return from_json_impl(is, h);
+}
+
+void to_json (const invalidate_request & request, std::ostream & os) {
+	to_json_wrapper([&] (auto & writer) {
+		key("accessToken", writer);
+		to_json(request.access_token, writer);
+		key("clientToken", writer);
+		to_json(request.client_token, writer);
+	}, os);
+}
+
+template <>
+from_json_result_type<invalidate_request> from_json<invalidate_request> (std::istream & is) {
+	class handler : public object_handler_base<string_handler> {
+	private:
+		using base = object_handler_base<string_handler>;
+		invalidate_request req_;
+		bool access_token_;
+		bool client_token_;
+	public:
+		handler ()
+			:	access_token_(false),
+				client_token_(false)
+		{	}
+		invalidate_request get () {
+			return std::move(req_);
+		}
+		bool done () const noexcept {
+			return access_token_ && client_token_ && base::done();
+		}
+		bool Key (const Ch * str, std::size_t length, bool copy) {
+			if (!parser::done()) return base::Key(str, length, copy);
+			if (strnequal("accessToken", str, length)) {
+				if (access_token_) {
+					error(from_json_error::duplicate_key);
+					return false;
+				}
+				access_token_ = true;
+				emplace<string_handler>(req_.access_token);
+				return true;
+			}
+			if (strnequal("clientToken", str, length)) {
+				if (client_token_) {
+					error(from_json_error::duplicate_key);
+					return false;
+				}
+				client_token_ = true;
+				emplace<string_handler>(req_.client_token);
 				return true;
 			}
 			error(from_json_error::unexpected_key);

@@ -14,6 +14,7 @@
 #include <mcpp/variant.hpp>
 #include <mcpp/yggdrasil/authenticate.hpp>
 #include <mcpp/yggdrasil/error.hpp>
+#include <mcpp/yggdrasil/invalidate.hpp>
 #include <mcpp/yggdrasil/json.hpp>
 #include <mcpp/yggdrasil/refresh.hpp>
 #include <mcpp/yggdrasil/signout.hpp>
@@ -284,6 +285,37 @@ SCENARIO("Signout requests may be made via AsyncStream", "[mcpp][yggdrasil][http
 					"Content-Length: 35\r\n"
 					"\r\n"
 					"{\"username\":\"foo\",\"password\":\"bar\"}"
+				);
+			}
+			THEN("The correct response is successfully parsed") {
+				CHECK_FALSE(*result);
+			}
+		}
+	}
+}
+
+SCENARIO("Invalidate requests may be made via AsyncStream", "[mcpp][yggdrasil][http]") {
+	GIVEN("A model of AsyncStream which yields the HTTP response to a successful invalidate request") {
+		boost::asio::io_service io_service;
+		beast::test::string_iostream ios(
+			io_service,
+			"HTTP/1.1 204 No Content\r\n\r\n"
+		);
+		beast::flat_buffer buffer;
+		optional<error> result;
+		auto handler = [&] (auto ec) {	result.emplace(ec);	};
+		WHEN("A validate request is submitted") {
+			invalidate_request req("quux", "corge");
+			async_http_request(ios, buffer, std::move(req), beast::http::fields{}, handler);
+			do io_service.run_one();
+			while (!result);
+			THEN("The correct HTTP request is generated") {
+				CHECK(ios.str ==
+					"POST /invalidate HTTP/1.1\r\n"
+					"Content-Type: application/json; charset=utf-8\r\n"
+					"Content-Length: 44\r\n"
+					"\r\n"
+					"{\"accessToken\":\"quux\",\"clientToken\":\"corge\"}"
 				);
 			}
 			THEN("The correct response is successfully parsed") {
