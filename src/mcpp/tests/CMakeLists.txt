@@ -1,5 +1,6 @@
 add_executable(mcpp_tests
 	allocate_unique.cpp
+	async.cpp
 	checked.cpp
 	log.cpp
 	main.cpp

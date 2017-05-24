@@ -1,4 +1,5 @@
 add_library(mcpp SHARED
+	async.cpp
 	log.cpp
 	log_level.cpp
 	null_log.cpp
